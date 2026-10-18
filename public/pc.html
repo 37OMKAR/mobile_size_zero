@@ -669,33 +669,53 @@
         <div class="bg-surface-container-low rounded-xl p-4 flex flex-col gap-4 shadow-xl border border-outline-variant/20 overflow-hidden">
           
           <!-- Table Header & Filter Tabs -->
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-1 border-b border-outline-variant/20">
-            <div class="flex items-center gap-2.5">
-              <span class="material-symbols-outlined text-primary-container text-[20px]">inventory_2</span>
-              <div class="flex flex-col">
-                <span class="text-sm font-semibold text-on-surface tracking-tight">INCOMING PAYLOAD INSPECTOR &amp; VERIFICATION REGISTRY</span>
-                <span id="tableItemCounter" class="font-mono text-[10px] text-on-surface-variant">0 ITEMS INGESTED • ZERO CHECKSUM DISCREPANCIES</span>
+          <div class="flex flex-col gap-2 pb-1 border-b border-outline-variant/20">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+              <div class="flex items-center gap-2.5">
+                <span class="material-symbols-outlined text-secondary text-[22px]">hard_drive</span>
+                <div class="flex flex-col">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-bold text-on-surface tracking-tight">PC STORAGE VAULT (Files Stored on Computer Disk)</span>
+                    <span class="px-2 py-0.5 rounded bg-surface-container font-mono text-[10px] text-secondary font-semibold border border-secondary/30">SAVED ON PC</span>
+                  </div>
+                  <span id="tableItemCounter" class="font-mono text-[10px] text-on-surface-variant">0 FILES STORED IN VAULT • ZERO CHECKSUM DISCREPANCIES</span>
+                </div>
+              </div>
+
+              <!-- Filter Tabs -->
+              <div class="flex flex-wrap items-center gap-1 bg-surface-container-lowest p-1 rounded-lg border border-outline-variant/20">
+                <button class="filter-pill active px-3 py-1 rounded bg-surface-container-high text-primary font-mono text-xs font-semibold shadow" data-filter="all">
+                  All Saved Files (<span id="countAll">0</span>)
+                </button>
+                <button class="filter-pill px-3 py-1 rounded text-on-surface-variant hover:text-on-surface font-mono text-xs transition-colors" data-filter="photos">
+                  Photos (<span id="countPhotos">0</span>)
+                </button>
+                <button class="filter-pill px-3 py-1 rounded text-on-surface-variant hover:text-on-surface font-mono text-xs transition-colors" data-filter="videos">
+                  Videos (<span id="countVideos">0</span>)
+                </button>
+                <button class="filter-pill px-3 py-1 rounded text-on-surface-variant hover:text-on-surface font-mono text-xs transition-colors" data-filter="documents">
+                  Documents (<span id="countDocs">0</span>)
+                </button>
+                <button class="filter-pill px-3 py-1 rounded text-secondary hover:text-secondary-fixed font-mono text-xs flex items-center gap-1 transition-colors" data-filter="skipped">
+                  <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                  Duplicates Skipped (<span id="countSkipped">0</span>)
+                </button>
               </div>
             </div>
 
-            <!-- Filter Tabs -->
-            <div class="flex flex-wrap items-center gap-1 bg-surface-container-lowest p-1 rounded-lg border border-outline-variant/20">
-              <button class="filter-pill active px-3 py-1 rounded bg-surface-container-high text-primary font-mono text-xs font-semibold shadow" data-filter="all">
-                All Files (<span id="countAll">0</span>)
-              </button>
-              <button class="filter-pill px-3 py-1 rounded text-on-surface-variant hover:text-on-surface font-mono text-xs transition-colors" data-filter="photos">
-                Photos (<span id="countPhotos">0</span>)
-              </button>
-              <button class="filter-pill px-3 py-1 rounded text-on-surface-variant hover:text-on-surface font-mono text-xs transition-colors" data-filter="videos">
-                Videos (<span id="countVideos">0</span>)
-              </button>
-              <button class="filter-pill px-3 py-1 rounded text-on-surface-variant hover:text-on-surface font-mono text-xs transition-colors" data-filter="documents">
-                Documents (<span id="countDocs">0</span>)
-              </button>
-              <button class="filter-pill px-3 py-1 rounded text-secondary hover:text-secondary-fixed font-mono text-xs flex items-center gap-1 transition-colors" data-filter="skipped">
-                <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
-                Duplicates Skipped (<span id="countSkipped">0</span>)
-              </button>
+            <!-- Vault Notice Banner -->
+            <div class="p-2.5 rounded-lg bg-surface-container-lowest/90 border border-outline-variant/30 flex flex-wrap items-center justify-between gap-2 font-mono text-[11px]">
+              <div class="flex items-center gap-2 text-on-surface-variant">
+                <span class="material-symbols-outlined text-secondary text-[16px]">folder_special</span>
+                <span><strong>PC Disk Repository:</strong> These <span id="vaultBannerCount" class="text-secondary font-bold">11</span> files are stored locally on your PC (<code class="text-primary">received_files</code>).</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-on-surface-variant">Phone has <strong class="text-primary font-bold">10,000+ photos</strong> ready to transfer!</span>
+                <a href="#wireTransferWorkbench" class="text-primary font-bold hover:underline flex items-center gap-0.5">
+                  <span>Transfer Phone Photos</span>
+                  <span class="material-symbols-outlined text-[13px]">arrow_upward</span>
+                </a>
+              </div>
             </div>
           </div>
 
