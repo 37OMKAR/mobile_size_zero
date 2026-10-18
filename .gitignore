@@ -8,4 +8,6 @@ test/temp-*
 Thumbs.db
 .agents/
 .stitch/
-
+.mtp_*
+temp_*
+*.tmp

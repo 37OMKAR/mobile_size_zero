@@ -12,6 +12,7 @@ const Deduplicator = require('./deduplicator');
 const ChunkManager = require('./chunkManager');
 const FileOrganizer = require('./fileOrganizer');
 const WireTransferEngine = require('./wireTransferEngine');
+const MtpPhoneEngine = require('./mtpPhoneEngine');
 
 async function createAppAndServer(customConfig = {}) {
   const config = { ...defaultConfig, ...customConfig };
@@ -44,6 +45,7 @@ async function createAppAndServer(customConfig = {}) {
   });
 
   const wireEngine = new WireTransferEngine();
+  const mtpEngine = new MtpPhoneEngine();
 
   const app = express();
   const server = http.createServer(app);
@@ -642,7 +644,69 @@ async function createAppAndServer(customConfig = {}) {
     res.json({ success: true, message: 'Wire transfer resumed' });
   });
 
-  return { app, server, config, deduplicator, chunkManager, fileOrganizer, wireEngine, wss };
+  // --- HARDWARE MTP PHONE DIRECT ACCESS ENDPOINTS ---
+
+  // 22. GET /api/mtp/devices - Detect connected MTP phones (e.g. moto g73 5G)
+  app.get('/api/mtp/devices', async (req, res) => {
+    try {
+      const devices = await mtpEngine.detectDevices();
+      res.json({ success: true, devices });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // 23. POST /api/mtp/scan - Scan specific folder on connected phone
+  app.post('/api/mtp/scan', async (req, res) => {
+    try {
+      const { phoneName, storageName, folderName } = req.body;
+      if (!phoneName || !storageName || !folderName) {
+        return res.status(400).json({ success: false, error: 'phoneName, storageName, and folderName are required' });
+      }
+      const scan = await mtpEngine.scanFolder(phoneName, storageName, folderName);
+      res.json({ success: true, ...scan });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // 24. POST /api/mtp/start - Start direct transfer from phone to PC
+  app.post('/api/mtp/start', async (req, res) => {
+    try {
+      const { phoneName, storageName, folderName } = req.body;
+      if (!phoneName || !storageName || !folderName) {
+        return res.status(400).json({ success: false, error: 'phoneName, storageName, and folderName are required' });
+      }
+
+      mtpEngine.startTransfer({
+        phoneName,
+        storageName,
+        folderName,
+        destinationDir: config.STORAGE_DIR,
+        deduplicator,
+        fileOrganizer,
+        broadcast
+      }).then(summary => {
+        console.log(`[MTP Engine] Completed transfer: ${summary.completedCount} files from ${phoneName}`);
+      }).catch(err => {
+        console.error('[MTP Engine] Transfer error:', err.message);
+        broadcast('mtp_transfer_error', { error: err.message });
+      });
+
+      res.json({ success: true, message: 'Phone MTP transfer started' });
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // 25. POST /api/mtp/cancel - Cancel active phone MTP transfer
+  app.post('/api/mtp/cancel', (req, res) => {
+    mtpEngine.cancelTransfer();
+    broadcast('mtp_transfer_cancelled', {});
+    res.json({ success: true, message: 'Phone MTP transfer cancelled' });
+  });
+
+  return { app, server, config, deduplicator, chunkManager, fileOrganizer, wireEngine, mtpEngine, wss };
 }
 
 // Direct execution entrypoint

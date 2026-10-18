@@ -5,7 +5,7 @@
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
-    "test": "node test/test-dedup.js && node test/test-chunk-engine.js && node test/test-server-api.js && node test/test-wire-engine.js && node test/test-e2e-simulation.js"
+    "test": "node test/test-dedup.js && node test/test-chunk-engine.js && node test/test-server-api.js && node test/test-wire-engine.js && node test/test-mtp-engine.js && node test/test-e2e-simulation.js"
   },
   "keywords": [
     "file-transfer",

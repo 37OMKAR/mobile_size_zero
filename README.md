@@ -219,28 +219,28 @@ flowchart LR
 
 ## 🔌 USB-C Wire / Cable Turbo Transfer (Priority Hardware Link)
 
-Transfer massive mobile galleries, 4K 60fps ProRes footage, and entire DCIM folder trees directly over a **USB-C cord** with zero Windows Explorer crashes, zero MTP stalls, and guaranteed SHA-256 data integrity:
+Transfer massive mobile galleries, 4K 60fps videos, and entire DCIM folder trees directly over a **USB-C cord** with zero Windows Explorer crashes, zero MTP stalls, and guaranteed SHA-256 data integrity:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                    USB-C DIRECT CORD TRANSFER WORKFLOW                      │
+│                 DIRECT USB-C HARDWARE PHONE TRANSFER WORKFLOW               │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ 1. 🔌 Connect Phone via USB-C Cord to PC                                    │
-│    Plug in your phone and choose "File Transfer / MTP" on the phone prompt. │
+│    Plug in your phone and select "File Transfer / MTP" on the phone prompt. │
 │                                                                             │
-│ 2. 📂 Select Mobile Drive & Folder on PC Dashboard                          │
-│    Click "Select Mobile Folder" to open the native Windows picker at        │
-│    "This PC" (your phone appears as a drive or portable device), or use the │
-│    built-in browser Web Folder Picker for instant direct streaming.         │
+│ 2. ⚡ Auto-Detect Phone on PC Dashboard                                      │
+│    The PC Command Center automatically detects your phone via Windows       │
+│    Portable Device COM (e.g. "📱 MOTO G73 5G (USB CABLE READY)").          │
 │                                                                             │
-│ 3. 🔍 Instant Payload Inspection & Breakdown                                │
-│    The engine recursively analyzes the mobile folder in milliseconds and    │
-│    displays total files, total GB, and a breakdown of Videos, Photos, Docs. │
+│ 3. 📂 Select Phone Storage Drive & Target Folder                            │
+│    • Choose storage: "SD card" or "Internal shared storage".                │
+│    • Choose folder: "📸 Camera (882 files)", "DCIM", "Pictures", "Movies"...│
+│    • No manual folder typing or confusing GUID paths needed!                │
 │                                                                             │
-│ 4. ⚡ 4MB Buffer Stream Saturation (Zero MTP Crash)                         │
-│    Click "START TURBO WIRE TRANSFER". The engine streams files through      │
-│    4MB highWaterMark memory buffers directly into PC NVMe storage, easily   │
-│    reaching 60–120+ MB/s without the single-threaded locks of Explorer.     │
+│ 4. 🚀 1-Click High-Speed Direct Transfer                                    │
+│    Click "START DIRECT TRANSFER". Files stream directly into your PC's      │
+│    storage vault with live progress, real-time MB/s telemetry, and zero     │
+│    Windows Explorer freezing.                                               │
 │                                                                             │
 │ 5. 🧹 Reclaim Mobile Space Confidently (Verified Deletion Vault)            │
 │    Every transferred file is cryptographically matched via SHA-256. Once    │
@@ -251,9 +251,10 @@ Transfer massive mobile galleries, 4K 60fps ProRes footage, and entire DCIM fold
 ```
 
 ### Why USB-C Wire Transfer via Mobile Size Zero beats Windows Explorer:
-- **Zero MTP Thread Locking**: Windows Explorer uses a single synchronous MTP queue that hangs if a single video thumbnail fails to render. Mobile Size Zero uses direct file streams with timeout guards and atomic temporary writes (`.wire_tmp_*`).
-- **Instant Pre-Flight Deduplication**: Re-running a transfer on a folder with 5,000 photos scans the PC vault in `~0ms` and skips already backed-up files, writing 0 redundant bytes.
-- **Pause & Resume Control**: Pause your USB-C copy at any time or cancel without leaving half-written corrupt files behind.
+- **Automatic Phone Hardware Detection**: Directly queries Windows Shell COM (`Shell.Application`) to detect connected portable devices (`moto g73 5G`, `Galaxy`, `Pixel`, `iPhone`) without needing drive letters.
+- **Multi-Storage Volume Support**: Automatically distinguishes between phone **Internal Storage** and external **SD Cards**, listing actual media folders (`Camera`, `DCIM`, `Pictures`, `Download`).
+- **Zero MTP Thread Locking**: Windows Explorer uses a single synchronous MTP queue that hangs if a thumbnail fails to render. Mobile Size Zero transfers items with timeout guards, atomic staging, and streaming progress.
+- **Instant Pre-Flight Deduplication**: Re-running a transfer scans the PC vault in `~0ms` and skips already backed-up files, writing 0 redundant bytes.
 - **Safe Space-Emptying Checklist**: Copies the exact list of verified filenames to your clipboard so you know with 100% certainty which files are safe to delete from your phone.
 
 ---
@@ -333,6 +334,7 @@ npm test
 mobile_size_zero/
 ├── server/
 │   ├── server.js              # Express + WebSocket LAN server & IP auto-discovery
+│   ├── mtpPhoneEngine.js      # Direct Windows Portable Device (WPD) phone detector & transfer engine
 │   ├── wireTransferEngine.js  # USB-C Cord Turbo Transfer engine (4MB buffer stream)
 │   ├── chunkManager.js        # Resumable chunk storage & atomic file assembly
 │   ├── deduplicator.js        # Dual-check metadata & SHA-256 duplicate ledger
@@ -346,7 +348,7 @@ mobile_size_zero/
 │   │   ├── pc.css             # Glassmorphic desktop dark theme
 │   │   └── mobile.css         # Native-feeling mobile app stylesheet
 │   └── js/
-│   │   ├── pcApp.js           # Live canvas graph renderer, Wire controller & WebSocket client
+│   │   ├── pcApp.js           # Live canvas graph renderer, MTP phone controller & WebSocket client
 │   │   ├── chunkUploader.js   # TurboBoost multi-stream chunker with WakeLock
 │   │   └── mobileApp.js       # Mobile UI controller & cleanup assistant
 ├── screenshots/
@@ -358,6 +360,7 @@ mobile_size_zero/
 │   ├── stitch/                # Archived Stitch HTML and high-res screen exports
 │   └── plans/                 # Architectural specifications and test reports
 ├── test/
+│   ├── test-mtp-engine.js     # MTP hardware phone detection & folder scan tests
 │   ├── test-wire-engine.js    # USB-C wire transfer & duplicate elimination tests
 │   ├── test-dedup.js          # Deduplication unit tests
 │   ├── test-chunk-engine.js   # Chunk assembly & resume tests

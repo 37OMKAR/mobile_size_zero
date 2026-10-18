@@ -56,6 +56,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const settingAutoOrganize = document.getElementById('settingAutoOrganize');
   const settingRequirePin = document.getElementById('settingRequirePin');
 
+  // MTP Hardware Phone Direct Elements
+  const mtpPhoneIcon = document.getElementById('mtpPhoneIcon');
+  const mtpPhoneTitle = document.getElementById('mtpPhoneTitle');
+  const mtpPhoneSubtitle = document.getElementById('mtpPhoneSubtitle');
+  const btnRefreshMtpDevices = document.getElementById('btnRefreshMtpDevices');
+  const mtpStorageSelect = document.getElementById('mtpStorageSelect');
+  const mtpFolderSelect = document.getElementById('mtpFolderSelect');
+  const btnScanMtpFolder = document.getElementById('btnScanMtpFolder');
+
+  let detectedMtpDevices = [];
+  let currentMtpPhone = null;
+  let currentMtpStorage = null;
+
   // Direct USB-C / Wire Transfer Workbench Elements
   const wireSourceInput = document.getElementById('wireSourceInput');
   const btnBrowseMobileFolderNative = document.getElementById('btnBrowseMobileFolderNative');
@@ -260,7 +273,168 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- USB-C / WIRE DIRECT TRANSFER ENGINE CONTROLLERS ---
+  // --- MTP HARDWARE PHONE DIRECT ENGINE CONTROLLERS ---
+
+  async function loadMtpDevices() {
+    if (mtpPhoneTitle) mtpPhoneTitle.textContent = 'DETECTING CONNECTED USB PHONE...';
+    try {
+      const res = await fetch('/api/mtp/devices');
+      const data = await res.json();
+      detectedMtpDevices = (data.success && data.devices) ? data.devices : [];
+
+      if (detectedMtpDevices.length > 0) {
+        currentMtpPhone = detectedMtpDevices[0];
+        if (mtpPhoneTitle) mtpPhoneTitle.textContent = `📱 ${currentMtpPhone.name.toUpperCase()} (USB CABLE READY)`;
+        if (mtpPhoneSubtitle) mtpPhoneSubtitle.textContent = `Direct Hardware Link Active • ${currentMtpPhone.storages.length} Storage Drives Detected`;
+        if (mtpPhoneIcon) mtpPhoneIcon.className = 'material-symbols-outlined text-secondary text-[22px] animate-pulse';
+
+        // Populate storage select
+        if (mtpStorageSelect) {
+          mtpStorageSelect.innerHTML = currentMtpPhone.storages.map((s, idx) => `
+            <option value="${s.name}" ${idx === 0 ? 'selected' : ''}>💾 ${s.name} (${s.folders.length} folders)</option>
+          `).join('');
+
+          updateMtpFolderOptions();
+        }
+      } else {
+        currentMtpPhone = null;
+        if (mtpPhoneTitle) mtpPhoneTitle.textContent = 'NO USB PHONE DETECTED';
+        if (mtpPhoneSubtitle) mtpPhoneSubtitle.textContent = 'Plug in USB-C cable and select "File Transfer / MTP" on your phone prompt';
+        if (mtpPhoneIcon) mtpPhoneIcon.className = 'material-symbols-outlined text-outline text-[22px]';
+        if (mtpStorageSelect) mtpStorageSelect.innerHTML = '<option value="">No phone storage detected</option>';
+        if (mtpFolderSelect) mtpFolderSelect.innerHTML = '<option value="">Connect phone via USB</option>';
+      }
+    } catch (e) {
+      console.error('Error detecting MTP devices:', e);
+      if (mtpPhoneTitle) mtpPhoneTitle.textContent = 'USB DRIVER STANDBY';
+    }
+  }
+
+  function updateMtpFolderOptions() {
+    if (!currentMtpPhone || !mtpStorageSelect) return;
+    const selectedStorageName = mtpStorageSelect.value;
+    const storage = currentMtpPhone.storages.find(s => s.name === selectedStorageName) || currentMtpPhone.storages[0];
+    currentMtpStorage = storage;
+
+    if (!storage || !mtpFolderSelect) return;
+
+    // Prioritize media folders: Camera, DCIM, Pictures, Video, Movies, Download, Documents
+    const priority = ['Camera', 'DCIM', 'Pictures', 'Video', 'Movies', 'Download', 'Documents'];
+    const sorted = [...storage.folders].sort((a, b) => {
+      const idxA = priority.indexOf(a);
+      const idxB = priority.indexOf(b);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return a.localeCompare(b);
+    });
+
+    mtpFolderSelect.innerHTML = sorted.map(f => {
+      let icon = '📁';
+      if (f === 'Camera' || f === 'DCIM') icon = '📸';
+      else if (f === 'Pictures') icon = '🖼️';
+      else if (f === 'Video' || f === 'Movies') icon = '🎬';
+      else if (f === 'Download') icon = '📥';
+      return `<option value="${f}">${icon} ${f}</option>`;
+    }).join('');
+
+    scanCurrentMtpFolder();
+  }
+
+  async function scanCurrentMtpFolder() {
+    if (!currentMtpPhone || !mtpStorageSelect || !mtpFolderSelect) return;
+    const phoneName = currentMtpPhone.name;
+    const storageName = mtpStorageSelect.value;
+    const folderName = mtpFolderSelect.value;
+
+    if (!folderName) return;
+
+    if (wireScanSummary) wireScanSummary.style.display = 'flex';
+    if (wireScanHeading) wireScanHeading.textContent = `Scanning ${phoneName} -> ${storageName} -> ${folderName}...`;
+    if (wireScanTotalSize) wireScanTotalSize.textContent = '(Querying USB-C driver...)';
+
+    try {
+      const res = await fetch('/api/mtp/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneName, storageName, folderName })
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (wireScanHeading) wireScanHeading.textContent = `${data.totalFiles} Files Detected in ${folderName}`;
+        if (wireScanTotalSize) wireScanTotalSize.textContent = `(Ready for high-speed copy)`;
+        if (wireScanVideos) wireScanVideos.textContent = `${phoneName}`;
+        if (wireScanPhotos) wireScanPhotos.textContent = `${storageName}`;
+        if (wireScanDocs) wireScanDocs.textContent = `${folderName}`;
+
+        if (btnStartWireTransfer) {
+          btnStartWireTransfer.disabled = (data.totalFiles === 0);
+          if (btnStartWireText) btnStartWireText.textContent = `START DIRECT TRANSFER (${data.totalFiles} FILES)`;
+          btnStartWireTransfer.onclick = startMtpTransferExecution;
+        }
+      }
+    } catch (e) {
+      console.error('MTP scan error:', e);
+      if (wireScanHeading) wireScanHeading.textContent = 'Scan Error';
+      if (wireScanTotalSize) wireScanTotalSize.textContent = e.message;
+    }
+  }
+
+  async function startMtpTransferExecution() {
+    if (!currentMtpPhone || !mtpStorageSelect || !mtpFolderSelect) return;
+    const phoneName = currentMtpPhone.name;
+    const storageName = mtpStorageSelect.value;
+    const folderName = mtpFolderSelect.value;
+
+    try {
+      if (btnStartWireTransfer) btnStartWireTransfer.disabled = true;
+      if (btnStartWireText) btnStartWireText.textContent = 'TRANSFERRING FROM PHONE...';
+      if (wireProgressBanner) wireProgressBanner.style.display = 'flex';
+      if (btnCancelWireTransfer) {
+        btnCancelWireTransfer.style.display = 'inline-flex';
+        btnCancelWireTransfer.onclick = cancelMtpTransferExecution;
+      }
+      if (wireReliefCard) wireReliefCard.style.display = 'none';
+
+      const res = await fetch('/api/mtp/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneName, storageName, folderName })
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        alert('Could not start phone transfer: ' + (data.error || 'Unknown error'));
+        if (btnStartWireTransfer) btnStartWireTransfer.disabled = false;
+        if (btnStartWireText) btnStartWireText.textContent = 'START DIRECT PHONE TO PC TRANSFER';
+      }
+    } catch (err) {
+      alert('Error: ' + err.message);
+      if (btnStartWireTransfer) btnStartWireTransfer.disabled = false;
+      if (btnStartWireText) btnStartWireText.textContent = 'START DIRECT PHONE TO PC TRANSFER';
+    }
+  }
+
+  async function cancelMtpTransferExecution() {
+    if (confirm('Cancel phone transfer?')) {
+      await fetch('/api/mtp/cancel', { method: 'POST' });
+    }
+  }
+
+  if (btnRefreshMtpDevices) {
+    btnRefreshMtpDevices.addEventListener('click', loadMtpDevices);
+  }
+  if (mtpStorageSelect) {
+    mtpStorageSelect.addEventListener('change', updateMtpFolderOptions);
+  }
+  if (mtpFolderSelect) {
+    mtpFolderSelect.addEventListener('change', scanCurrentMtpFolder);
+  }
+  if (btnScanMtpFolder) {
+    btnScanMtpFolder.addEventListener('click', scanCurrentMtpFolder);
+  }
+
+  // --- USB-C / WIRE DIRECT TRANSFER ENGINE CONTROLLERS (MANUAL PATH) ---
 
   // Scan folder for file count & size breakdown
   async function scanWireFolder(folderPath) {
@@ -1044,6 +1218,57 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           loadStatus();
           loadHistory();
+        } else if (eventType === 'mtp_transfer_started') {
+          if (wireProgressBanner) wireProgressBanner.style.display = 'flex';
+          if (wireStatusBadge) {
+            wireStatusBadge.className = 'font-mono text-xs px-2.5 py-1 rounded bg-secondary/20 text-secondary border border-secondary/40 flex items-center gap-1.5 font-bold animate-pulse';
+            wireStatusBadge.innerHTML = `<span class="w-2 h-2 rounded-full bg-secondary"></span> TRANSFERRING (${data.phoneName || 'PHONE'})`;
+          }
+          if (wireCurrentFileName) {
+            wireCurrentFileName.textContent = `Starting transfer of ${data.totalFiles} items from ${data.folderName}...`;
+          }
+          if (btnCancelWireTransfer) btnCancelWireTransfer.style.display = 'inline-flex';
+          if (btnStartWireTransfer) btnStartWireTransfer.disabled = true;
+          if (btnStartWireText) btnStartWireText.textContent = 'TRANSFER IN PROGRESS...';
+          if (wireReliefCard) wireReliefCard.style.display = 'none';
+        } else if (eventType === 'mtp_transfer_completed') {
+          lastVerifiedFiles = data.verifiedFiles || [];
+          if (wireProgressBanner) wireProgressBanner.style.display = 'none';
+          if (btnCancelWireTransfer) btnCancelWireTransfer.style.display = 'none';
+          if (btnStartWireTransfer) {
+            btnStartWireTransfer.disabled = false;
+            if (btnStartWireText) btnStartWireText.textContent = 'START DIRECT PHONE TO PC TRANSFER';
+          }
+          if (wireStatusBadge) {
+            wireStatusBadge.className = 'font-mono text-xs px-2.5 py-1 rounded bg-secondary/20 text-secondary border border-secondary/40 flex items-center gap-1.5 font-bold';
+            wireStatusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-secondary"></span> 100% VERIFIED ON PC';
+          }
+          if (wireReliefCard) {
+            wireReliefCard.style.display = 'flex';
+            if (wireReliefHeading) {
+              wireReliefHeading.textContent = `🎉 Transferred ${data.completedCount} Files (${formatBytes(data.totalBytesTransferred)}) from Phone!`;
+            }
+            if (wireReliefText) {
+              wireReliefText.textContent = `${data.completedCount} files cryptographically verified with SHA-256 on PC vault (${data.duplicateCount} duplicates skipped). You can now safely delete them from your phone to empty space.`;
+            }
+          }
+          loadStatus();
+          loadHistory();
+        } else if (eventType === 'mtp_transfer_cancelled') {
+          if (wireProgressBanner) wireProgressBanner.style.display = 'none';
+          if (btnCancelWireTransfer) btnCancelWireTransfer.style.display = 'none';
+          if (btnStartWireTransfer) {
+            btnStartWireTransfer.disabled = false;
+            if (btnStartWireText) btnStartWireText.textContent = 'START DIRECT PHONE TO PC TRANSFER';
+          }
+        } else if (eventType === 'mtp_transfer_error') {
+          alert('Phone transfer notice: ' + (data.error || 'Unknown error'));
+          if (wireProgressBanner) wireProgressBanner.style.display = 'none';
+          if (btnCancelWireTransfer) btnCancelWireTransfer.style.display = 'none';
+          if (btnStartWireTransfer) {
+            btnStartWireTransfer.disabled = false;
+            if (btnStartWireText) btnStartWireText.textContent = 'START DIRECT PHONE TO PC TRANSFER';
+          }
         } else if (eventType === 'wire_batch_cancelled') {
           if (wireProgressBanner) wireProgressBanner.style.display = 'none';
           if (btnPauseWireTransfer) btnPauseWireTransfer.style.display = 'none';
@@ -1113,5 +1338,6 @@ document.addEventListener('DOMContentLoaded', () => {
   drawSpeedGraph();
   loadStatus();
   loadHistory();
+  loadMtpDevices();
   initWebSocket();
 });
