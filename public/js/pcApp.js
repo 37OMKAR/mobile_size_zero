@@ -7,8 +7,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const pcHostInfo = document.getElementById('pcHostInfo');
   const connectedCountBadge = document.getElementById('connectedCountBadge');
   const wifiIpLabel = document.getElementById('wifiIpLabel');
-  const connectedDeviceName = document.getElementById('connectedDeviceName');
+  const bufferRamText = document.getElementById('bufferRamText');
+
+  // Mobile Device Selection & Outbox Elements
+  const activeMobileCountBadge = document.getElementById('activeMobileCountBadge');
+  const selectMobileDevice = document.getElementById('selectMobileDevice');
+  const deviceModelLabel = document.getElementById('deviceModelLabel');
+  const deviceIpLabel = document.getElementById('deviceIpLabel');
+  const deviceStatusWord = document.getElementById('deviceStatusWord');
   const deviceIndicatorDot = document.getElementById('deviceIndicatorDot');
+  const btnSendFilesToPhone = document.getElementById('btnSendFilesToPhone');
+  const btnSendFolderToPhone = document.getElementById('btnSendFolderToPhone');
+  const pcFileInput = document.getElementById('pcFileInput');
+  const pcFolderInput = document.getElementById('pcFolderInput');
+  const pcSendStatus = document.getElementById('pcSendStatus');
 
   const statTotalTransferred = document.getElementById('statTotalTransferred');
   const statTotalFiles = document.getElementById('statTotalFiles');
@@ -19,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const storageBarFill = document.getElementById('storageBarFill');
   const storageFolderPath = document.getElementById('storageFolderPath');
   const storagePercentUsed = document.getElementById('storagePercentUsed');
+  const btnBrowseFolderNative = document.getElementById('btnBrowseFolderNative');
 
   const filesTableBody = document.getElementById('filesTableBody');
   const tableItemCounter = document.getElementById('tableItemCounter');
@@ -52,6 +65,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let speedLastTime = Date.now();
   let searchQuery = '';
 
+  let connectedDevicesList = [];
+  let selectedDeviceId = '';
+  let currentSessionToken = '';
+  let currentSessionPin = '';
+
   function formatBytes(bytes) {
     if (!bytes || bytes === 0) return '0 B';
     const k = 1024;
@@ -77,12 +95,149 @@ document.addEventListener('DOMContentLoaded', () => {
     `).join('');
   }
 
+  // Update Connected Mobile Devices Dropdown & Details
+  function updateMobileDevices(devices) {
+    connectedDevicesList = devices || [];
+    
+    if (activeMobileCountBadge) {
+      activeMobileCountBadge.textContent = `${connectedDevicesList.length} Active`;
+    }
+
+    if (selectMobileDevice) {
+      if (connectedDevicesList.length === 0) {
+        selectMobileDevice.innerHTML = '<option value="">Awaiting mobile connection via QR / PIN...</option>';
+        if (deviceModelLabel) deviceModelLabel.textContent = 'No mobile connected';
+        if (deviceIpLabel) deviceIpLabel.textContent = '--';
+        if (deviceStatusWord) deviceStatusWord.textContent = 'Standby';
+        if (deviceIndicatorDot) deviceIndicatorDot.className = 'w-2 h-2 rounded-full bg-outline-variant';
+        return;
+      }
+
+      // Check if selected is still valid
+      if (!connectedDevicesList.some(d => d.id === selectedDeviceId)) {
+        selectedDeviceId = connectedDevicesList[0].id;
+      }
+
+      selectMobileDevice.innerHTML = connectedDevicesList.map(d => `
+        <option value="${d.id}" ${d.id === selectedDeviceId ? 'selected' : ''}>
+          📱 ${d.name} (${d.ip})
+        </option>
+      `).join('');
+
+      renderSelectedDevice();
+    }
+  }
+
+  function renderSelectedDevice() {
+    const dev = connectedDevicesList.find(d => d.id === selectedDeviceId) || connectedDevicesList[0];
+    if (!dev) return;
+
+    if (deviceModelLabel) deviceModelLabel.textContent = dev.name;
+    if (deviceIpLabel) {
+      deviceIpLabel.textContent = `${dev.ip} • ${dev.isWire ? 'USB-C Direct Wire (100+ MB/s)' : '5GHz Local Wi-Fi'}`;
+    }
+    if (deviceStatusWord) deviceStatusWord.textContent = 'Online & Active';
+    if (deviceIndicatorDot) {
+      deviceIndicatorDot.className = 'w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_rgba(78,222,163,0.8)] animate-pulse';
+    }
+  }
+
+  if (selectMobileDevice) {
+    selectMobileDevice.addEventListener('change', (e) => {
+      selectedDeviceId = e.target.value;
+      renderSelectedDevice();
+    });
+  }
+
+  // Send Files & Folder from PC to Mobile
+  if (btnSendFilesToPhone) {
+    btnSendFilesToPhone.addEventListener('click', () => {
+      if (pcFileInput) pcFileInput.click();
+    });
+  }
+  if (btnSendFolderToPhone) {
+    btnSendFolderToPhone.addEventListener('click', () => {
+      if (pcFolderInput) pcFolderInput.click();
+    });
+  }
+
+  if (pcFileInput) {
+    pcFileInput.addEventListener('change', (e) => sendFilesToSelectedMobile(e.target.files));
+  }
+  if (pcFolderInput) {
+    pcFolderInput.addEventListener('change', (e) => sendFilesToSelectedMobile(e.target.files));
+  }
+
+  async function sendFilesToSelectedMobile(fileList) {
+    if (!fileList || fileList.length === 0) return;
+    if (pcSendStatus) pcSendStatus.textContent = `Pipelining ${fileList.length} item(s) to mobile...`;
+
+    let sentCount = 0;
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i];
+      const filename = file.webkitRelativePath || file.name;
+      try {
+        const res = await fetch('/api/send-to-mobile', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/octet-stream',
+            'x-filename': encodeURIComponent(filename),
+            'Authorization': `Bearer ${currentSessionToken}`,
+            'x-pin': currentSessionPin
+          },
+          body: file
+        });
+        if (res.ok) sentCount++;
+      } catch (err) {
+        console.error('Error sending file to phone:', err);
+      }
+    }
+
+    if (pcSendStatus) {
+      pcSendStatus.textContent = `✔ Dispatched ${sentCount} item(s) to mobile!`;
+      setTimeout(() => { pcSendStatus.textContent = ''; }, 4000);
+    }
+    if (pcFileInput) pcFileInput.value = '';
+    if (pcFolderInput) pcFolderInput.value = '';
+  }
+
+  // Native Windows Folder Selector Dialog
+  if (btnBrowseFolderNative) {
+    btnBrowseFolderNative.addEventListener('click', async () => {
+      btnBrowseFolderNative.innerHTML = '<span class="material-symbols-outlined text-[14px] animate-spin">sync</span> Browsing...';
+      try {
+        const res = await fetch('/api/browse-folder', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentSessionToken}`,
+            'x-pin': currentSessionPin
+          }
+        });
+        const data = await res.json();
+        if (data.success && data.storageDir) {
+          if (storageFolderPath) storageFolderPath.textContent = data.storageDir;
+          if (settingStoragePath) settingStoragePath.value = data.storageDir;
+          loadStatus();
+          loadHistory();
+        }
+      } catch (e) {
+        console.error('Error browsing folder:', e);
+      } finally {
+        btnBrowseFolderNative.innerHTML = '<span class="material-symbols-outlined text-[14px]">drive_file_move</span> Change Folder...';
+      }
+    });
+  }
+
   // Load Status
   async function loadStatus() {
     try {
       const res = await fetch('/api/status');
       if (!res.ok) throw new Error('Status request failed');
       const data = await res.json();
+
+      currentSessionToken = data.sessionToken || '';
+      currentSessionPin = data.sessionPin || '';
 
       if (qrImage) qrImage.src = data.qrCode;
       updatePinBoxes(data.sessionPin);
@@ -93,14 +248,13 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const clientCount = data.connectedClients || 0;
       if (connectedCountBadge) connectedCountBadge.textContent = `${clientCount} Connected`;
-      if (connectedDeviceName) {
-        connectedDeviceName.textContent = clientCount > 0 ? 'Mobile Device (Paired)' : 'Mobile Device (Standby)';
+
+      if (bufferRamText) {
+        bufferRamText.textContent = `${data.bufferRamMB || 180} MB / ${data.totalRamGB || 16} GB`;
       }
-      if (deviceIndicatorDot) {
-        deviceIndicatorDot.className = clientCount > 0 
-          ? 'w-2.5 h-2.5 rounded-full bg-secondary shadow-[0_0_8px_rgba(78,222,163,0.8)] animate-pulse'
-          : 'w-2.5 h-2.5 rounded-full bg-outline-variant';
-      }
+
+      // Update mobile devices
+      updateMobileDevices(data.connectedDevices || []);
 
       // Storage
       if (data.disk) {
@@ -468,9 +622,11 @@ document.addEventListener('DOMContentLoaded', () => {
     ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
+        const eventType = msg.event || msg.type;
+        const data = msg.data || {};
 
-        if (msg.type === 'telemetry') {
-          const bytes = msg.data.bytesTransferred || 0;
+        if (eventType === 'transfer_progress' || eventType === 'telemetry') {
+          const bytes = data.chunkSize || data.bytesTransferred || 0;
           speedBytesRecent += bytes;
           const now = Date.now();
           const elapsed = (now - speedLastTime) / 1000;
@@ -480,27 +636,37 @@ document.addEventListener('DOMContentLoaded', () => {
             speedBytesRecent = 0;
             speedLastTime = now;
           }
-        } else if (msg.type === 'duplicate_skipped') {
+        } else if (eventType === 'duplicate_skipped') {
           skippedDuplicatesCount++;
           if (statDuplicatesSkipped) statDuplicatesSkipped.textContent = skippedDuplicatesCount;
           updateCounts();
-        } else if (msg.type === 'transfer_complete') {
-          const data = msg.data;
+        } else if (eventType === 'file_completed' || eventType === 'transfer_complete') {
           historyEntries.unshift({
             name: data.name,
             size: data.size,
             category: data.category || getCategory(data.name),
             sha256: data.sha256,
             transferredAt: Date.now(),
-            filePath: data.filePath
+            filePath: data.path || data.filePath
           });
           totalTransferredBytes += (data.size || 0);
           if (statTotalTransferred) statTotalTransferred.textContent = formatBytes(totalTransferredBytes);
           updateCounts();
           renderTable();
           loadStatus();
+        } else if (eventType === 'devices_updated') {
+          updateMobileDevices(data.devices || []);
+        } else if (eventType === 'device_registered') {
+          loadStatus();
+        } else if (eventType === 'clients_count') {
+          if (connectedCountBadge) connectedCountBadge.textContent = `${data.count || 0} Connected`;
+        } else if (eventType === 'settings_updated') {
+          if (data.storageDir && storageFolderPath) storageFolderPath.textContent = data.storageDir;
+          loadStatus();
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('WS message error:', e);
+      }
     };
 
     ws.onclose = () => {

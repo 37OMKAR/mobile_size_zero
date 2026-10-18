@@ -129,6 +129,8 @@ class ChunkUploader {
     const newItems = [];
     for (let i = 0; i < fileList.length; i++) {
       const file = fileList[i];
+      const relPath = file.webkitRelativePath || '';
+      const displayName = relPath || file.name;
       const fileId = await this.generateFileId(file);
       const chunkSize = this.getOptimalChunkSize(file.size);
       const totalChunks = Math.ceil(file.size / chunkSize) || 1;
@@ -141,7 +143,9 @@ class ChunkUploader {
       const item = {
         fileId,
         file,
-        name: file.name,
+        name: displayName,
+        rawName: file.name,
+        relativePath: relPath,
         size: file.size,
         lastModified: file.lastModified,
         chunkSize,
@@ -211,6 +215,7 @@ class ChunkUploader {
         body: JSON.stringify({
           fileId: item.fileId,
           name: item.name,
+          relativePath: item.relativePath || '',
           size: item.size,
           mtime: item.lastModified,
           quickHash,

@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let sessionPin = params.get('pin') || localStorage.getItem('airtransfer_pin') || '';
 
   // Elements
+  // Elements
   const connectionStatus = document.getElementById('connectionStatus');
   const connectionText = document.getElementById('connectionText');
   const metricTransferred = document.getElementById('metricTransferred');
@@ -11,16 +12,42 @@ document.addEventListener('DOMContentLoaded', () => {
   const metricSkipped = document.getElementById('metricSkipped');
   const wakeLockBanner = document.getElementById('wakeLockBanner');
   
+  // Storage Hero Dynamic Telemetry
+  const storagePressureBadge = document.getElementById('storagePressureBadge');
+  const storageUsedVal = document.getElementById('storageUsedVal');
+  const storageQuotaVal = document.getElementById('storageQuotaVal');
+  const storageLeftVal = document.getElementById('storageLeftVal');
+  const storageLeftBadge = document.getElementById('storageLeftBadge');
+  const barSystem = document.getElementById('barSystem');
+  const barVideos = document.getElementById('barVideos');
+  const barPhotos = document.getElementById('barPhotos');
+  const barFree = document.getElementById('barFree');
+  const heroVideoVal = document.getElementById('heroVideoVal');
+  const heroVideoCount = document.getElementById('heroVideoCount');
+  const heroPhotoVal = document.getElementById('heroPhotoVal');
+  const heroPhotoCount = document.getElementById('heroPhotoCount');
+  const heroSystemVal = document.getElementById('heroSystemVal');
+  const heroFreeVal = document.getElementById('heroFreeVal');
+  const heroRecommendText = document.getElementById('heroRecommendText');
+
+  // Tactile Pickers
+  const btnPickFolder = document.getElementById('btnPickFolder');
   const btnPickMedia = document.getElementById('btnPickMedia');
   const btnPickFiles = document.getElementById('btnPickFiles');
+  const inputFolder = document.getElementById('inputFolder');
   const inputMedia = document.getElementById('inputMedia');
   const inputFiles = document.getElementById('inputFiles');
 
+  // Queue and Incoming
   const queueBadge = document.getElementById('queueBadge');
   const btnPauseResume = document.getElementById('btnPauseResume');
   const btnClearDone = document.getElementById('btnClearDone');
   const queueList = document.getElementById('queueList');
   const emptyQueue = document.getElementById('emptyQueue');
+
+  const incomingSection = document.getElementById('incomingSection');
+  const incomingBadge = document.getElementById('incomingBadge');
+  const incomingList = document.getElementById('incomingList');
 
   // Space Emptying Cleanup Elements
   const cleanupCard = document.getElementById('cleanupCard');
@@ -37,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let totalTransferredBytes = 0;
   let skippedDuplicatesCount = 0;
   const verifiedFiles = [];
+  const incomingFilesFromPc = [];
 
   function showModal(el) {
     if (!el) return;
@@ -50,6 +78,81 @@ document.addEventListener('DOMContentLoaded', () => {
     el.classList.add('hidden');
     el.classList.remove('flex');
     el.style.display = 'none';
+  }
+
+  // Real Storage Measurement using navigator.storage
+  async function initStorageMetrics() {
+    try {
+      if (navigator.storage && navigator.storage.estimate) {
+        const estimate = await navigator.storage.estimate();
+        const quotaBytes = estimate.quota || (128 * 1024 * 1024 * 1024);
+        const usedBytes = estimate.usage || 0;
+        const freeBytes = Math.max(0, quotaBytes - usedBytes);
+
+        const quotaGB = (quotaBytes / (1024 ** 3)).toFixed(1);
+        const usedGB = (usedBytes / (1024 ** 3)).toFixed(1);
+        const freeGB = (freeBytes / (1024 ** 3)).toFixed(1);
+        const usedPct = Math.min(100, Math.max(2, ((usedBytes / quotaBytes) * 100).toFixed(1)));
+        const freePct = (100 - usedPct).toFixed(1);
+
+        if (storageUsedVal) storageUsedVal.textContent = usedGB;
+        if (storageQuotaVal) storageQuotaVal.textContent = `GB of ${quotaGB} GB Storage`;
+        if (storageLeftVal) storageLeftVal.textContent = `${freeGB} GB FREE`;
+        if (heroSystemVal) heroSystemVal.textContent = `${usedGB} GB`;
+        if (heroFreeVal) heroFreeVal.textContent = `${freeGB} GB`;
+
+        if (barSystem) barSystem.style.width = `${usedPct}%`;
+        if (barFree) barFree.style.width = `${freePct}%`;
+
+        if (storagePressureBadge) {
+          storagePressureBadge.textContent = usedPct > 90 ? 'STORAGE PRESSURE // HIGH' : 'STORAGE MONITOR // OPTIMAL';
+          storagePressureBadge.className = usedPct > 90 
+            ? 'font-mono text-[10px] uppercase tracking-widest text-error font-semibold'
+            : 'font-mono text-[10px] uppercase tracking-widest text-secondary font-semibold';
+        }
+      }
+    } catch (e) {
+      console.warn('Storage estimate failed:', e);
+    }
+  }
+
+  // Register Device with PC Host
+  async function registerDevice() {
+    try {
+      const ua = navigator.userAgent;
+      let platform = 'Mobile Device';
+      if (/iPhone/.test(ua)) platform = 'iPhone';
+      else if (/iPad/.test(ua)) platform = 'iPad';
+      else if (/Android/.test(ua)) platform = 'Android';
+      else if (/Windows/.test(ua)) platform = 'Windows';
+      else if (/Macintosh/.test(ua)) platform = 'macOS';
+
+      let browser = 'Browser';
+      if (/Chrome|CriOS/.test(ua)) browser = 'Chrome';
+      else if (/Safari/.test(ua)) browser = 'Safari';
+      else if (/Firefox|FxiOS/.test(ua)) browser = 'Firefox';
+      else if (/Edg/.test(ua)) browser = 'Edge';
+
+      const isWire = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const deviceName = `${platform} (${browser})`;
+
+      await fetch('/api/register-device', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionToken}`,
+          'x-pin': sessionPin
+        },
+        body: JSON.stringify({
+          deviceName,
+          platform,
+          browser,
+          isWire
+        })
+      });
+    } catch (e) {
+      console.warn('Device registration failed:', e);
+    }
   }
 
   // Initialize Uploader
@@ -111,6 +214,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       if (res.ok) {
         setConnected(true);
+        initStorageMetrics();
+        registerDevice();
+        loadIncomingFiles();
       } else {
         setConnected(false);
         showModal(authModal);
@@ -130,6 +236,51 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Load existing files sent from PC
+  async function loadIncomingFiles() {
+    try {
+      const res = await fetch('/api/mobile-downloads');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.items && data.items.length > 0) {
+          data.items.forEach(item => handleIncomingFileFromPc(item, false));
+        }
+      }
+    } catch (e) {
+      console.warn('Error loading downloads:', e);
+    }
+  }
+
+  function handleIncomingFileFromPc(item, alertUser = true) {
+    if (incomingFilesFromPc.some(f => f.id === item.id)) return;
+    incomingFilesFromPc.push(item);
+
+    if (incomingSection) incomingSection.style.display = 'flex';
+    if (incomingBadge) incomingBadge.textContent = `${incomingFilesFromPc.length} Received`;
+
+    const row = document.createElement('div');
+    row.className = 'flex items-center justify-between p-2.5 rounded-lg bg-surface-container border border-primary-container/20';
+    row.innerHTML = `
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-8 h-8 rounded bg-primary-container/20 text-primary-container flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-[18px]">download_for_offline</span>
+        </div>
+        <div class="flex flex-col min-w-0">
+          <span class="text-xs font-medium text-on-surface truncate">${item.name}</span>
+          <span class="font-mono text-[10px] text-primary-fixed">${formatBytes(item.size)} • Transferred from PC</span>
+        </div>
+      </div>
+      <a href="${item.downloadUrl}" download="${item.name}" class="px-3 py-1 rounded bg-primary-container hover:bg-primary text-on-primary-fixed font-mono text-[11px] font-bold shadow transition-all shrink-0">
+        SAVE
+      </a>
+    `;
+    if (incomingList) incomingList.prepend(row);
+
+    if (alertUser && navigator.vibrate) {
+      try { navigator.vibrate(200); } catch {}
+    }
+  }
+
   // Scanner Elements
   const btnScanStorage = document.getElementById('btnScanStorage');
   const inputScan = document.getElementById('inputScan');
@@ -137,9 +288,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCloseScanner = document.getElementById('btnCloseScanner');
   const scanTotalSize = document.getElementById('scanTotalSize');
   const scanItemCount = document.getElementById('scanItemCount');
-  const barVideos = document.getElementById('barVideos');
-  const barPhotos = document.getElementById('barPhotos');
-  const barDocs = document.getElementById('barDocs');
+  const barVideosModal = document.getElementById('barVideos');
+  const barPhotosModal = document.getElementById('barPhotos');
+  const barDocsModal = document.getElementById('barDocs');
   const legendVideos = document.getElementById('legendVideos');
   const legendPhotos = document.getElementById('legendPhotos');
   const legendDocs = document.getElementById('legendDocs');
@@ -156,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let scannedItems = [];
   let currentScanFilter = 'all';
 
-  // File Picker bindings
+  // File & Folder Picker bindings
   if (btnScanStorage) {
     btnScanStorage.addEventListener('click', () => inputScan.click());
   }
@@ -164,19 +315,107 @@ document.addEventListener('DOMContentLoaded', () => {
     inputScan.addEventListener('change', (e) => startStorageScan(e.target.files));
   }
 
-  btnPickMedia.addEventListener('click', () => inputMedia.click());
-  btnPickFiles.addEventListener('click', () => inputFiles.click());
+  if (btnPickFolder) {
+    btnPickFolder.addEventListener('click', () => inputFolder.click());
+  }
+  if (inputFolder) {
+    inputFolder.addEventListener('change', (e) => handleFolderSelection(e.target.files));
+  }
 
-  inputMedia.addEventListener('change', (e) => handleFileSelection(e.target.files));
-  inputFiles.addEventListener('change', (e) => handleFileSelection(e.target.files));
+  if (btnPickMedia) {
+    btnPickMedia.addEventListener('click', () => inputMedia.click());
+  }
+  if (btnPickFiles) {
+    btnPickFiles.addEventListener('click', () => inputFiles.click());
+  }
+
+  if (inputMedia) {
+    inputMedia.addEventListener('change', (e) => handleFileSelection(e.target.files));
+  }
+  if (inputFiles) {
+    inputFiles.addEventListener('change', (e) => handleFileSelection(e.target.files));
+  }
+
+  // Handle entire directory / folder selection
+  async function handleFolderSelection(fileList) {
+    if (!fileList || fileList.length === 0) return;
+    if (emptyQueue) emptyQueue.style.display = 'none';
+
+    let folderBytes = 0;
+    let videoBytes = 0;
+    let photoBytes = 0;
+    let videoCount = 0;
+    let photoCount = 0;
+    let rootFolderName = 'Selected Folder';
+
+    for (let i = 0; i < fileList.length; i++) {
+      const f = fileList[i];
+      folderBytes += f.size;
+      const ext = f.name.split('.').pop().toLowerCase();
+      if (['mp4', 'mov', 'avi', 'mkv', 'webm', '3gp'].includes(ext)) {
+        videoBytes += f.size;
+        videoCount++;
+      } else if (['jpg', 'jpeg', 'png', 'heic', 'webp', 'gif', 'dng'].includes(ext)) {
+        photoBytes += f.size;
+        photoCount++;
+      }
+
+      if (f.webkitRelativePath) {
+        rootFolderName = f.webkitRelativePath.split('/')[0] || rootFolderName;
+      }
+    }
+
+    // Update hero counters dynamically
+    if (heroVideoVal) heroVideoVal.textContent = formatBytes(videoBytes);
+    if (heroVideoCount) heroVideoCount.textContent = `(${videoCount} files)`;
+    if (heroPhotoVal) heroPhotoVal.textContent = formatBytes(photoBytes);
+    if (heroPhotoCount) heroPhotoCount.textContent = `(${photoCount} files)`;
+
+    if (heroRecommendText) {
+      heroRecommendText.innerHTML = `Folder <span class="font-mono text-primary font-bold">'${rootFolderName}'</span> (${formatBytes(folderBytes)}, ${fileList.length} files) queued for transfer!`;
+    }
+
+    await uploader.addFiles(fileList);
+    updateQueueBadge();
+    inputFolder.value = '';
+  }
 
   async function handleFileSelection(fileList) {
     if (!fileList || fileList.length === 0) return;
     if (emptyQueue) emptyQueue.style.display = 'none';
+
+    let selBytes = 0;
+    let videoBytes = 0;
+    let photoBytes = 0;
+    let videoCount = 0;
+    let photoCount = 0;
+
+    for (let i = 0; i < fileList.length; i++) {
+      const f = fileList[i];
+      selBytes += f.size;
+      const ext = f.name.split('.').pop().toLowerCase();
+      if (['mp4', 'mov', 'avi', 'mkv', 'webm', '3gp'].includes(ext)) {
+        videoBytes += f.size;
+        videoCount++;
+      } else if (['jpg', 'jpeg', 'png', 'heic', 'webp', 'gif', 'dng'].includes(ext)) {
+        photoBytes += f.size;
+        photoCount++;
+      }
+    }
+
+    if (heroVideoVal && videoBytes > 0) {
+      heroVideoVal.textContent = formatBytes(videoBytes);
+      if (heroVideoCount) heroVideoCount.textContent = `(${videoCount} files)`;
+    }
+    if (heroPhotoVal && photoBytes > 0) {
+      heroPhotoVal.textContent = formatBytes(photoBytes);
+      if (heroPhotoCount) heroPhotoCount.textContent = `(${photoCount} files)`;
+    }
+
     await uploader.addFiles(fileList);
     updateQueueBadge();
-    inputMedia.value = '';
-    inputFiles.value = '';
+    if (inputMedia) inputMedia.value = '';
+    if (inputFiles) inputFiles.value = '';
   }
 
   // Storage Scanner Logic
@@ -628,6 +867,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => setConnected(true);
+    ws.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.event === 'incoming_file_from_pc') {
+          handleIncomingFileFromPc(msg.data, true);
+        } else if (msg.event === 'settings_updated') {
+          // PC settings updated
+        }
+      } catch (e) {
+        console.warn('WS message error:', e);
+      }
+    };
     ws.onclose = () => {
       setConnected(false);
       setTimeout(initWebSocket, 3000);

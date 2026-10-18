@@ -53,8 +53,10 @@ async function createAppAndServer(customConfig = {}) {
 
   const wss = new WebSocket.Server({ server });
 
-  // WebSocket Clients Tracker
+  // WebSocket Clients & Device Trackers
   const clients = new Set();
+  const connectedDevices = new Map();
+  const outboxItems = new Map();
 
   function broadcast(event, data) {
     const payload = JSON.stringify({ event, data, timestamp: Date.now() });
@@ -89,9 +91,13 @@ async function createAppAndServer(customConfig = {}) {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true }));
 
-  // Raw body parser for binary chunk uploads
+  // Raw body parser for binary chunk uploads & PC-to-mobile transfers
   app.use('/api/upload-chunk', express.raw({
-    limit: '20mb',
+    limit: '50mb',
+    type: 'application/octet-stream'
+  }));
+  app.use('/api/send-to-mobile', express.raw({
+    limit: '200mb',
     type: 'application/octet-stream'
   }));
 
@@ -179,6 +185,10 @@ async function createAppAndServer(customConfig = {}) {
       const disk = getDiskStats();
       const catalogStats = deduplicator.getStats();
 
+      const memUsage = process.memoryUsage();
+      const bufferRamMB = Math.round(memUsage.rss / (1024 * 1024));
+      const totalRamGB = (require('os').totalmem() / (1024 ** 3)).toFixed(1);
+
       res.json({
         hostName: require('os').hostname(),
         port: config.PORT,
@@ -191,9 +201,12 @@ async function createAppAndServer(customConfig = {}) {
         requirePin: config.REQUIRE_PIN,
         autoOrganize: config.AUTO_ORGANIZE,
         storageDir: config.STORAGE_DIR,
+        bufferRamMB,
+        totalRamGB,
         disk,
         catalogStats,
-        connectedClients: clients.size
+        connectedClients: clients.size,
+        connectedDevices: Array.from(connectedDevices.values())
       });
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -216,7 +229,7 @@ async function createAppAndServer(customConfig = {}) {
   // 3. POST /api/check-file - Pre-flight duplicate check & resumable upload state
   app.post('/api/check-file', requireAuth, async (req, res) => {
     try {
-      const { fileId, name, size, mtime, quickHash, sha256, totalChunks, mimeType } = req.body;
+      const { fileId, name, size, mtime, quickHash, sha256, totalChunks, mimeType, relativePath } = req.body;
 
       if (!fileId || !name || size === undefined) {
         return res.status(400).json({ error: 'fileId, name, and size are required' });
@@ -267,7 +280,8 @@ async function createAppAndServer(customConfig = {}) {
         totalSize: size,
         totalChunks: totalChunks || 1,
         mtime,
-        mimeType
+        mimeType,
+        relativePath
       });
 
       res.json({
@@ -431,6 +445,102 @@ async function createAppAndServer(customConfig = {}) {
     } else {
       res.json({ success: true, message: 'Open folder supported on Windows' });
     }
+  });
+
+  // 10. POST /api/browse-folder - Native Windows Folder Selector Dialog
+  app.post('/api/browse-folder', requireAuth, (req, res) => {
+    if (process.platform === 'win32') {
+      const psCmd = `powershell -NoProfile -Command "Add-Type -AssemblyName System.Windows.Forms; $d = New-Object System.Windows.Forms.FolderBrowserDialog; $d.Description = 'Select PC Storage Destination Folder for Mobile Transfers'; $d.ShowNewFolderButton = $true; if ($d.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Output $d.SelectedPath }"`;
+      exec(psCmd, async (err, stdout) => {
+        const selected = (stdout || '').trim();
+        if (selected && fs.existsSync(selected)) {
+          config.STORAGE_DIR = path.resolve(selected);
+          fileOrganizer.storageDir = config.STORAGE_DIR;
+          deduplicator.storageDir = config.STORAGE_DIR;
+          await deduplicator.scanAndIndexDirectory(config.STORAGE_DIR);
+          broadcast('settings_updated', { storageDir: config.STORAGE_DIR });
+          return res.json({ success: true, storageDir: config.STORAGE_DIR });
+        }
+        return res.json({ success: false, message: 'No folder selected or cancelled' });
+      });
+    } else {
+      res.json({ success: false, message: 'Native folder browser supported on Windows' });
+    }
+  });
+
+  // 11. POST /api/register-device - Track connected mobile devices
+  app.post('/api/register-device', (req, res) => {
+    const { deviceId, deviceName, platform, browser, isWire } = req.body || {};
+    const rawIp = req.socket.remoteAddress || req.ip || '127.0.0.1';
+    const cleanIp = rawIp.replace(/^.*:/, '');
+    const id = deviceId || 'dev_' + cleanIp.replace(/\./g, '_');
+
+    const dev = {
+      id,
+      name: deviceName || (platform ? `${platform} Device` : 'Mobile Device'),
+      ip: cleanIp,
+      platform: platform || 'Mobile',
+      browser: browser || 'Mobile Browser',
+      isWire: Boolean(isWire),
+      connectedAt: Date.now(),
+      lastSeen: Date.now()
+    };
+    connectedDevices.set(id, dev);
+
+    broadcast('device_registered', dev);
+    broadcast('devices_updated', { devices: Array.from(connectedDevices.values()) });
+    res.json({ success: true, device: dev });
+  });
+
+  // 12. GET /api/devices - List all active mobile devices
+  app.get('/api/devices', (req, res) => {
+    res.json({ devices: Array.from(connectedDevices.values()) });
+  });
+
+  // 13. POST /api/send-to-mobile - Send file from PC to connected mobile
+  app.post('/api/send-to-mobile', requireAuth, (req, res) => {
+    try {
+      const rawName = req.headers['x-filename'] || 'file_' + Date.now();
+      const filename = decodeURIComponent(rawName);
+      const fileId = 'outbox_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+      const outboxDir = path.join(config.STORAGE_DIR, '.outbox');
+      if (!fs.existsSync(outboxDir)) {
+        fs.mkdirSync(outboxDir, { recursive: true });
+      }
+
+      const filePath = path.join(outboxDir, `${fileId}_${path.basename(filename)}`);
+      fs.writeFileSync(filePath, req.body);
+      const size = Buffer.isBuffer(req.body) ? req.body.length : 0;
+
+      const item = {
+        id: fileId,
+        name: path.basename(filename),
+        size,
+        path: filePath,
+        timestamp: Date.now(),
+        downloadUrl: `/api/download-file/${fileId}`
+      };
+      outboxItems.set(fileId, item);
+
+      broadcast('incoming_file_from_pc', item);
+      res.json({ success: true, item });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 14. GET /api/download-file/:fileId - Download file sent from PC
+  app.get('/api/download-file/:fileId', (req, res) => {
+    const item = outboxItems.get(req.params.fileId);
+    if (!item || !fs.existsSync(item.path)) {
+      return res.status(404).send('File not found in outbox');
+    }
+    res.download(item.path, item.name);
+  });
+
+  // 15. GET /api/mobile-downloads - List all files available for phone to download
+  app.get('/api/mobile-downloads', (req, res) => {
+    res.json({ items: Array.from(outboxItems.values()) });
   });
 
   return { app, server, config, deduplicator, chunkManager, fileOrganizer, wss };

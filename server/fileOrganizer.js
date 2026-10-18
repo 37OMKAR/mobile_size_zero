@@ -15,10 +15,23 @@ class FileOrganizer {
   };
 
   /**
-   * Cleans filename of path traversal and illegal Windows characters
+   * Cleans filename of path traversal and illegal Windows characters.
+   * If allowRelativePath is true, preserves directory subfolders while stripping traversal dots.
    */
-  sanitizeFilename(rawName) {
+  sanitizeFilename(rawName, allowRelativePath = false) {
     if (!rawName) return 'unnamed_file';
+    
+    if (allowRelativePath && (rawName.includes('/') || rawName.includes('\\'))) {
+      const parts = rawName.split(/[/\\]+/).filter(p => p && p !== '.' && p !== '..');
+      const cleanParts = parts.map(p => {
+        let clean = p.replace(/[\\/:*?"<>|]+/g, '_');
+        clean = clean.replace(/[\x00-\x1f\x80-\x9f]/g, '');
+        clean = clean.replace(/^[.\s]+|[.\s]+$/g, '');
+        return clean || 'sub';
+      });
+      return cleanParts.join(path.sep) || 'file';
+    }
+
     // Get basename first to remove any directory paths
     let clean = path.basename(rawName);
     // Remove or replace illegal Windows chars: \ / : * ? " < > |
@@ -47,6 +60,18 @@ class FileOrganizer {
    * Generate destination path with date-based organization and collision avoidance
    */
   determineDestinationPath(fileMeta) {
+    // If a folder hierarchy was provided, preserve folder structure
+    const relPath = fileMeta.relativePath || (fileMeta.name && (fileMeta.name.includes('/') || fileMeta.name.includes('\\')) ? fileMeta.name : null);
+    
+    if (relPath) {
+      const sanitizedRel = this.sanitizeFilename(relPath, true);
+      const targetDir = path.join(this.storageDir, path.dirname(sanitizedRel));
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
+      }
+      return this.getNonCollidingPath(targetDir, path.basename(sanitizedRel));
+    }
+
     const cleanName = this.sanitizeFilename(fileMeta.name);
     let targetDir = this.storageDir;
 
