@@ -59,7 +59,19 @@
     </section>
 
     <!-- File Picker Actions -->
-    <section class="actions-section">
+      <!-- Smart Storage Scanner -->
+      <button id="btnScanStorage" class="picker-btn picker-btn-scanner" type="button">
+        <div class="btn-icon-wrapper scanner-icon-bg">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+          </svg>
+        </div>
+        <div class="btn-text-content">
+          <span>Scan Mobile Media to Free Space</span>
+          <span class="btn-subtext">Find heavy videos, duplicates & see what to transfer</span>
+        </div>
+      </button>
+
       <!-- Photos & Videos -->
       <button id="btnPickMedia" class="picker-btn picker-btn-primary" type="button">
         <div class="btn-icon-wrapper">
@@ -88,6 +100,7 @@
     </section>
 
     <!-- Hidden Native Inputs -->
+    <input type="file" id="inputScan" accept="image/*,video/*,audio/*,application/*" multiple style="display: none;">
     <input type="file" id="inputMedia" accept="image/*,video/*" multiple style="display: none;">
     <input type="file" id="inputFiles" multiple style="display: none;">
 
@@ -135,6 +148,95 @@
       <div id="verifiedFilesList" class="verified-files-list" style="display: none;"></div>
     </section>
   </main>
+
+  <!-- Mobile Storage Scanner & Analysis Modal -->
+  <div id="scannerModal" class="scanner-modal" style="display: none;">
+    <div class="scanner-modal-header">
+      <h3>
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        <span>Mobile Storage Analysis</span>
+      </h3>
+      <button id="btnCloseScanner" class="btn-close-scanner" type="button">&times;</button>
+    </div>
+
+    <div class="scanner-modal-body">
+      <!-- Breakdown Summary Card -->
+      <div class="scanner-summary-card">
+        <div class="summary-headline">
+          <div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Scanned Media</div>
+            <div id="scanTotalSize" class="summary-total-size">0 MB</div>
+          </div>
+          <div id="scanItemCount" class="summary-items-count">0 items scanned</div>
+        </div>
+
+        <!-- Proportional Colored Bar -->
+        <div class="breakdown-bar">
+          <div id="barVideos" class="bar-segment videos" style="width: 0%;"></div>
+          <div id="barPhotos" class="bar-segment photos" style="width: 0%;"></div>
+          <div id="barDocs" class="bar-segment docs" style="width: 0%;"></div>
+        </div>
+
+        <div class="breakdown-legend">
+          <div class="legend-item">
+            <span class="legend-dot videos"></span>
+            <span id="legendVideos">Videos: 0 MB</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot photos"></span>
+            <span id="legendPhotos">Photos: 0 MB</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot docs"></span>
+            <span id="legendDocs">Other: 0 MB</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pre-Flight Duplicate Scan Live Status -->
+      <div class="precheck-box">
+        <div class="precheck-status-row">
+          <span style="font-weight: 600; color: #fff;">PC Duplicate Pre-Check:</span>
+          <span id="scanDupStatus" style="color: var(--accent-cyan); font-weight: 700;">Scanning...</span>
+        </div>
+        <div id="scanDupDetails" style="font-size: 0.75rem; color: var(--text-muted);">
+          Checking files against PC storage ledger to eliminate wasted uploads...
+        </div>
+      </div>
+
+      <!-- Filter Chips -->
+      <div class="scanner-filter-bar">
+        <button class="scanner-pill active" data-scan-filter="all">All (<span id="countAll">0</span>)</button>
+        <button class="scanner-pill" data-scan-filter="heavy">Heavy Videos &gt; 50MB (<span id="countHeavy">0</span>)</button>
+        <button class="scanner-pill" data-scan-filter="new">New to Transfer (<span id="countNew">0</span>)</button>
+        <button class="scanner-pill" data-scan-filter="on-pc">Already on PC (<span id="countOnPc">0</span>)</button>
+      </div>
+
+      <!-- Quick Selection Bar -->
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 4px;">
+        <span style="font-size: 0.78rem; color: var(--text-dim);" id="selectionCountText">0 selected</span>
+        <div style="display: flex; gap: 8px;">
+          <button id="btnSelectAllNew" class="pill-btn" style="padding: 4px 10px; font-size: 0.72rem;" type="button">Select All New</button>
+          <button id="btnSelectHeavy" class="pill-btn" style="padding: 4px 10px; font-size: 0.72rem;" type="button">Select Heavy Only</button>
+        </div>
+      </div>
+
+      <!-- Scanned Files List -->
+      <div id="scannerFileList" class="scanner-file-list"></div>
+    </div>
+
+    <!-- Sticky Bottom Transfer Bar -->
+    <div class="scanner-bottom-bar">
+      <button id="btnTransferSelected" class="btn-transfer-selected" type="button">
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        </svg>
+        <span id="btnTransferText">Transfer Selected (0 MB)</span>
+      </button>
+    </div>
+  </div>
 
   <!-- PIN Entry Modal (if needed) -->
   <div id="authModal" class="modal-overlay" style="display: none;">

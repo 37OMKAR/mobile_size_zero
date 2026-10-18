@@ -116,7 +116,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Scanner Elements
+  const btnScanStorage = document.getElementById('btnScanStorage');
+  const inputScan = document.getElementById('inputScan');
+  const scannerModal = document.getElementById('scannerModal');
+  const btnCloseScanner = document.getElementById('btnCloseScanner');
+  const scanTotalSize = document.getElementById('scanTotalSize');
+  const scanItemCount = document.getElementById('scanItemCount');
+  const barVideos = document.getElementById('barVideos');
+  const barPhotos = document.getElementById('barPhotos');
+  const barDocs = document.getElementById('barDocs');
+  const legendVideos = document.getElementById('legendVideos');
+  const legendPhotos = document.getElementById('legendPhotos');
+  const legendDocs = document.getElementById('legendDocs');
+  const scanDupStatus = document.getElementById('scanDupStatus');
+  const scanDupDetails = document.getElementById('scanDupDetails');
+  const scannerFileList = document.getElementById('scannerFileList');
+  const btnTransferSelected = document.getElementById('btnTransferSelected');
+  const btnTransferText = document.getElementById('btnTransferText');
+  const selectionCountText = document.getElementById('selectionCountText');
+  const btnSelectAllNew = document.getElementById('btnSelectAllNew');
+  const btnSelectHeavy = document.getElementById('btnSelectHeavy');
+  const scannerPills = document.querySelectorAll('.scanner-pill');
+
+  let scannedItems = []; // Array of scanned file objects
+  let currentScanFilter = 'all';
+
   // File Picker bindings
+  if (btnScanStorage) {
+    btnScanStorage.addEventListener('click', () => inputScan.click());
+  }
+  if (inputScan) {
+    inputScan.addEventListener('change', (e) => startStorageScan(e.target.files));
+  }
+
   btnPickMedia.addEventListener('click', () => inputMedia.click());
   btnPickFiles.addEventListener('click', () => inputFiles.click());
 
@@ -131,6 +164,264 @@ document.addEventListener('DOMContentLoaded', () => {
     // Reset inputs so same files can be re-selected if testing
     inputMedia.value = '';
     inputFiles.value = '';
+  }
+
+  // --- Storage Scanner & Analysis Logic ---
+  async function startStorageScan(fileList) {
+    if (!fileList || fileList.length === 0) return;
+    
+    scannedItems = [];
+    let totalBytes = 0;
+    let videoBytes = 0;
+    let photoBytes = 0;
+    let docBytes = 0;
+
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i];
+      const ext = file.name.split('.').pop().toLowerCase();
+      const isVideo = ['mp4', 'mov', 'avi', 'mkv', 'webm', '3gp', 'm4v'].includes(ext);
+      const isPhoto = ['jpg', 'jpeg', 'png', 'heic', 'heif', 'webp', 'gif', 'dng'].includes(ext);
+      const isHeavy = file.size >= 50 * 1024 * 1024; // > 50MB
+
+      totalBytes += file.size;
+      if (isVideo) videoBytes += file.size;
+      else if (isPhoto) photoBytes += file.size;
+      else docBytes += file.size;
+
+      scannedItems.push({
+        id: `scan_${i}_${file.size}`,
+        file,
+        name: file.name,
+        size: file.size,
+        mtime: file.lastModified,
+        category: isVideo ? 'Videos' : isPhoto ? 'Photos' : 'Documents',
+        isHeavy,
+        selected: true, // checked by default
+        status: 'checking', // checking, new, on_pc
+        reason: null
+      });
+    }
+
+    // Update Summary Header
+    scanTotalSize.textContent = formatBytes(totalBytes);
+    scanItemCount.textContent = `${scannedItems.length} media items found`;
+
+    // Proportional breakdown bars
+    const safeTotal = totalBytes || 1;
+    const vPct = ((videoBytes / safeTotal) * 100).toFixed(1);
+    const pPct = ((photoBytes / safeTotal) * 100).toFixed(1);
+    const dPct = ((docBytes / safeTotal) * 100).toFixed(1);
+
+    barVideos.style.width = `${vPct}%`;
+    barPhotos.style.width = `${pPct}%`;
+    barDocs.style.width = `${dPct}%`;
+
+    legendVideos.textContent = `Videos: ${formatBytes(videoBytes)} (${vPct}%)`;
+    legendPhotos.textContent = `Photos: ${formatBytes(photoBytes)} (${pPct}%)`;
+    legendDocs.textContent = `Docs/Other: ${formatBytes(docBytes)} (${dPct}%)`;
+
+    scannerModal.style.display = 'flex';
+    inputScan.value = '';
+
+    renderScannerList();
+    updateSelectionSummary();
+
+    // Run background duplicate check against PC
+    runDuplicateScanAgainstPc();
+  }
+
+  async function runDuplicateScanAgainstPc() {
+    scanDupStatus.textContent = 'Scanning PC catalog...';
+    scanDupDetails.textContent = 'Contacting PC to identify files already safely backed up...';
+
+    let alreadyOnPcCount = 0;
+    let savedBytes = 0;
+
+    for (const item of scannedItems) {
+      try {
+        const quickHash = await uploader.computeQuickHash(item.file);
+        const checkRes = await fetch('/api/check-file', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionToken}`,
+            'x-pin': sessionPin
+          },
+          body: JSON.stringify({
+            fileId: 'scan_check_' + item.id,
+            name: item.name,
+            size: item.size,
+            mtime: item.mtime,
+            quickHash
+          })
+        });
+
+        if (checkRes.ok) {
+          const data = await checkRes.json();
+          if (data.status === 'duplicate') {
+            item.status = 'on_pc';
+            item.selected = false; // Uncheck duplicates so user transfers only new files!
+            alreadyOnPcCount++;
+            savedBytes += item.size;
+          } else {
+            item.status = 'new';
+          }
+        }
+      } catch (err) {
+        item.status = 'new';
+      }
+    }
+
+    // Update Banner
+    if (alreadyOnPcCount > 0) {
+      scanDupStatus.textContent = `⚡ ${alreadyOnPcCount} Files Already on PC`;
+      scanDupDetails.textContent = `${formatBytes(savedBytes)} is already backed up on your PC! Unchecked to save transfer time and battery.`;
+    } else {
+      scanDupStatus.textContent = `🚀 All ${scannedItems.length} Files Ready to Transfer`;
+      scanDupDetails.textContent = `None of these files exist on your PC yet. Ready for ultra-fast transfer!`;
+    }
+
+    renderScannerList();
+    updateSelectionSummary();
+  }
+
+  function renderScannerList() {
+    // Filter items
+    const filtered = scannedItems.filter(item => {
+      if (currentScanFilter === 'heavy') return item.isHeavy;
+      if (currentScanFilter === 'new') return item.status === 'new';
+      if (currentScanFilter === 'on-pc') return item.status === 'on_pc';
+      return true;
+    });
+
+    // Update filter counts
+    document.getElementById('countAll').textContent = scannedItems.length;
+    document.getElementById('countHeavy').textContent = scannedItems.filter(i => i.isHeavy).length;
+    document.getElementById('countNew').textContent = scannedItems.filter(i => i.status === 'new').length;
+    document.getElementById('countOnPc').textContent = scannedItems.filter(i => i.status === 'on_pc').length;
+
+    if (filtered.length === 0) {
+      scannerFileList.innerHTML = `<div style="text-align: center; color: var(--text-dim); padding: 24px;">No items match this filter.</div>`;
+      return;
+    }
+
+    scannerFileList.innerHTML = filtered.map(item => {
+      const isChecked = item.selected ? 'checked' : '';
+      const selectedClass = item.selected ? 'selected' : '';
+      
+      let badgeHtml = '';
+      if (item.isHeavy) {
+        badgeHtml += `<span class="heavy-badge">Heavy &gt; 50MB</span>`;
+      }
+      if (item.status === 'on_pc') {
+        badgeHtml += `<span class="on-pc-badge">Already on PC</span>`;
+      } else if (item.status === 'new') {
+        badgeHtml += `<span style="background: rgba(56, 189, 248, 0.15); color: var(--accent-blue); padding: 1px 6px; border-radius: 4px; font-weight: 600;">New</span>`;
+      }
+
+      return `
+        <div class="scanner-item ${selectedClass}" data-id="${item.id}">
+          <input type="checkbox" ${isChecked} data-id="${item.id}">
+          <div class="file-icon-box" style="width: 32px; height: 32px;">${getFileIcon(item.name)}</div>
+          <div class="scanner-item-details">
+            <div class="scanner-item-name" title="${item.name}">${item.name}</div>
+            <div class="scanner-item-sub">
+              <span>${formatBytes(item.size)}</span>
+              ${badgeHtml}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Attach click handlers to checkboxes and row
+    scannerFileList.querySelectorAll('.scanner-item').forEach(row => {
+      row.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'INPUT') {
+          const cb = row.querySelector('input[type="checkbox"]');
+          cb.checked = !cb.checked;
+          handleCheckboxToggle(cb.dataset.id, cb.checked);
+        }
+      });
+      const cb = row.querySelector('input[type="checkbox"]');
+      cb.addEventListener('change', (e) => {
+        handleCheckboxToggle(e.target.dataset.id, e.target.checked);
+      });
+    });
+  }
+
+  function handleCheckboxToggle(id, isChecked) {
+    const item = scannedItems.find(i => i.id === id);
+    if (item) {
+      item.selected = isChecked;
+      const row = scannerFileList.querySelector(`.scanner-item[data-id="${id}"]`);
+      if (row) {
+        if (isChecked) row.classList.add('selected');
+        else row.classList.remove('selected');
+      }
+      updateSelectionSummary();
+    }
+  }
+
+  function updateSelectionSummary() {
+    const selected = scannedItems.filter(i => i.selected);
+    const selectedBytes = selected.reduce((sum, i) => sum + i.size, 0);
+
+    selectionCountText.textContent = `${selected.length} of ${scannedItems.length} selected`;
+    btnTransferText.textContent = `Transfer Selected (${formatBytes(selectedBytes)})`;
+  }
+
+  // Scanner filter buttons
+  scannerPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      scannerPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      currentScanFilter = pill.dataset.scanFilter;
+      renderScannerList();
+    });
+  });
+
+  // Quick Selectors
+  if (btnSelectAllNew) {
+    btnSelectAllNew.addEventListener('click', () => {
+      scannedItems.forEach(i => {
+        i.selected = (i.status !== 'on_pc');
+      });
+      renderScannerList();
+      updateSelectionSummary();
+    });
+  }
+
+  if (btnSelectHeavy) {
+    btnSelectHeavy.addEventListener('click', () => {
+      scannedItems.forEach(i => {
+        i.selected = i.isHeavy;
+      });
+      renderScannerList();
+      updateSelectionSummary();
+    });
+  }
+
+  // Close scanner modal
+  if (btnCloseScanner) {
+    btnCloseScanner.addEventListener('click', () => {
+      scannerModal.style.display = 'none';
+    });
+  }
+
+  // Transfer Selected Button
+  if (btnTransferSelected) {
+    btnTransferSelected.addEventListener('click', async () => {
+      const toTransfer = scannedItems.filter(i => i.selected).map(i => i.file);
+      if (toTransfer.length === 0) {
+        alert('Please select at least one file to transfer.');
+        return;
+      }
+      scannerModal.style.display = 'none';
+      emptyQueue.style.display = 'none';
+      await uploader.addFiles(toTransfer);
+      updateQueueBadge();
+    });
   }
 
   btnPauseResume.addEventListener('click', () => {

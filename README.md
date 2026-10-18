@@ -109,6 +109,20 @@ Need to move 100 GB of 4K footage as fast as theoretically possible? You can use
 
 ---
 
+## 🔍 Smart Mobile Storage Scanner & Media Inspector
+
+Want to know what is consuming all your phone storage before deciding what to offload?
+
+Tap **"Scan Mobile Media to Free Space"** directly from your phone browser:
+- **Visual Storage Breakdown**: Displays proportional colored bars breaking down your space into 4K Videos, Photos, and Documents.
+- **Heavy Media & 4K Video Finder**: Automatically tags large files (`> 50MB`) so you can target the biggest space hogs first.
+- **Pre-Flight PC Duplicate Scan**: In real-time, the scanner queries your PC's catalog and flags items as:
+  - ⚡ **`Already on PC`**: Safely backed up previously — automatically unchecked so you don't waste time re-uploading!
+  - 🚀 **`New`**: Brand-new media ready to transfer.
+- **Selective Transfer**: Filter by *Heavy Videos Only*, *New Files Only*, or select individual items, and transfer with 1 tap!
+
+---
+
 ## 🧹 Make Mobile Space Empty (Safe Deletion Assistant)
 
 Users are often afraid to delete photos from their phone gallery because they fear files were corrupted during transfer.
