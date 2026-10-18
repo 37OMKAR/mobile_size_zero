@@ -1,250 +1,480 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>AirTransfer - Mobile Direct Upload</title>
-  <meta name="description" content="Ultra-fast resumable mobile to PC file transfer over local Wi-Fi with duplicate detection">
-  <meta name="theme-color" content="#090d16">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="stylesheet" href="css/mobile.css">
-  <link rel="manifest" href="manifest.json">
-</head>
-<body>
-  <!-- App Header -->
-  <header class="app-header">
-    <div class="brand">
-      <div class="brand-icon">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-        </svg>
-      </div>
-      <div>
-        <div class="brand-name">AirTransfer</div>
-      </div>
-    </div>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+  <meta content="mobile_tab" name="shell-type"/>
+  <title>AirTransfer Pro — Storage Relief & Local Stream</title>
+  <meta name="description" content="Obsidian Telemetry mobile file transfer and storage relief client"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  
+  <style>
+    @layer base {
+      html, body { width: 100vw; margin: 0; padding: 0; }
+      body { overscroll-behavior: none; }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+      .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+      main > :first-child { margin-top: 0 !important; }
+      main > :last-child { margin-bottom: 0 !important; }
+    }
+    ::-webkit-scrollbar { display: none; }
+    .modal-backdrop {
+      background: rgba(10, 14, 22, 0.88);
+      backdrop-filter: blur(16px);
+    }
+  </style>
 
-    <div class="header-status">
-      <div id="connectionStatus" class="status-indicator">
-        <span class="status-dot"></span>
-        <span id="connectionText">Connected</span>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "inverse-primary": "#006875",
+            "outline-variant": "#3b494c",
+            "surface-container-highest": "#31353e",
+            "on-primary-container": "#00626e",
+            "error-container": "#93000a",
+            "on-primary-fixed": "#001f24",
+            "on-surface": "#dfe2ee",
+            "on-secondary-fixed": "#002113",
+            "secondary-fixed-dim": "#4edea3",
+            "surface-bright": "#353942",
+            "primary-container": "#00e5ff",
+            "primary": "#c3f5ff",
+            "surface": "#0f131c",
+            "background": "#0f131c",
+            "secondary": "#4edea3",
+            "surface-container-high": "#262a33",
+            "on-secondary-container": "#00311f",
+            "on-tertiary-container": "#7e22cc",
+            "on-background": "#dfe2ee",
+            "on-primary": "#00363d",
+            "on-tertiary-fixed": "#2c0051",
+            "primary-fixed-dim": "#00daf3",
+            "tertiary-container": "#e4c4ff",
+            "outline": "#849396",
+            "inverse-surface": "#dfe2ee",
+            "error": "#ffb4ab",
+            "tertiary-fixed-dim": "#ddb7ff",
+            "on-secondary": "#003824",
+            "surface-tint": "#00daf3",
+            "tertiary": "#f7e7ff",
+            "on-error": "#690005",
+            "on-tertiary": "#490080",
+            "secondary-container": "#00a572",
+            "tertiary-fixed": "#f0dbff",
+            "surface-dim": "#0f131c",
+            "on-error-container": "#ffdad6",
+            "on-primary-fixed-variant": "#004f58",
+            "on-tertiary-fixed-variant": "#6900b3",
+            "primary-fixed": "#9cf0ff",
+            "surface-container-low": "#181c24",
+            "surface-container-lowest": "#0a0e16",
+            "on-surface-variant": "#bac9cc",
+            "secondary-fixed": "#6ffbbe",
+            "inverse-on-surface": "#2c3039",
+            "on-secondary-fixed-variant": "#005236",
+            "surface-variant": "#31353e",
+            "surface-container": "#1c2028"
+          },
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-surface text-on-surface antialiased flex flex-col min-h-screen font-sans selection:bg-primary-container selection:text-on-primary-container">
+
+  <!-- TOP FIXED HEADER -->
+  <header class="fixed top-0 w-full z-50 pt-safe bg-surface/85 backdrop-blur-xl shadow-[0_1px_12px_rgba(0,0,0,0.5)] border-b border-outline-variant/20">
+    <div class="h-16 px-4 flex items-center justify-between">
+      <div class="flex flex-col gap-0.5">
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-semibold tracking-wider text-on-surface uppercase">AirTransfer</span>
+          <span class="px-1.5 py-0.5 rounded bg-surface-container-high font-mono text-[10px] text-primary-fixed-dim uppercase tracking-widest font-semibold">v2.4-PRO</span>
+        </div>
+        <div id="connectionStatus" class="flex items-center gap-1.5">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-secondary shadow-[0_0_8px_rgba(78,222,163,0.8)]"></span>
+          </span>
+          <span id="connectionText" class="font-mono text-[10px] text-on-surface-variant">Connected • 5GHz LAN (866 Mbps)</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <div id="wakeLockBanner" class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-low shadow-[inset_0_1px_2px_rgba(0,0,0,0.6)] border border-outline-variant/30">
+          <span class="material-symbols-outlined text-secondary text-[16px]">battery_charging_full</span>
+          <span class="font-mono text-[10px] text-secondary tracking-tight font-semibold">AWAKE</span>
+        </div>
+        <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
+        </div>
       </div>
     </div>
   </header>
 
-  <main class="container">
-    <!-- Screen Wake Lock Banner -->
-    <div id="wakeLockBanner" class="wakelock-banner">
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-      </svg>
-      <span>Screen Keep-Awake is active to prevent transfer crashes</span>
+  <!-- MAIN SCROLLABLE CONTENT -->
+  <main class="flex flex-col relative w-full pt-20 pb-24 bg-surface min-h-screen">
+    <div class="flex flex-col w-full px-4 space-y-4 max-w-md mx-auto">
+
+      <!-- Storage Pressure Gauge Hero Card -->
+      <section class="w-full rounded-xl bg-surface-container-low p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_rgba(0,0,0,0.45)] border border-outline-variant/20">
+        <!-- Header status tag -->
+        <div class="flex items-center justify-between pb-1">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-error animate-pulse shadow-[0_0_8px_rgba(255,180,171,0.8)]"></span>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-error font-semibold">STORAGE PRESSURE // CRITICAL (99.8%)</span>
+          </div>
+          <span class="font-mono text-[10px] text-outline px-1.5 py-0.5 rounded bg-surface-container-highest">FLASH_NVME_0</span>
+        </div>
+
+        <!-- Metric display headline -->
+        <div class="flex items-baseline justify-between mt-1 mb-2">
+          <div class="flex items-baseline gap-1.5">
+            <span class="text-2xl tracking-tight text-on-surface font-semibold font-sans">127.8</span>
+            <span class="text-xs text-on-surface-variant font-mono">GB of 128.0 GB Used</span>
+          </div>
+          <div class="flex items-center gap-1 px-2 py-0.5 rounded bg-error-container/40 text-error font-mono text-[10px] font-semibold">
+            <span class="material-symbols-outlined text-[14px]">warning</span>
+            <span>200 MB LEFT</span>
+          </div>
+        </div>
+
+        <!-- Precision Segmented Progress Bar -->
+        <div class="w-full h-3 rounded bg-surface-container-lowest p-0.5 flex gap-0.5 shadow-[inset_0_1px_2px_rgba(0,0,0,0.8)] border border-outline-variant/20">
+          <div class="h-full rounded-l bg-outline-variant" style="width: 82%;"></div>
+          <div class="h-full bg-tertiary-container shadow-[0_0_6px_rgba(228,196,255,0.4)]" style="width: 11%;"></div>
+          <div class="h-full bg-primary-container shadow-[0_0_6px_rgba(0,229,255,0.5)]" style="width: 6.2%;"></div>
+          <div class="h-full rounded-r bg-secondary animate-pulse" style="width: 0.8%;"></div>
+        </div>
+
+        <!-- Telemetry Legend -->
+        <div class="grid grid-cols-2 gap-2 mt-3 pt-1">
+          <div class="flex items-center gap-2 p-1.5 rounded bg-surface-container/60 border border-outline-variant/15">
+            <span class="w-2 h-2 rounded-xs bg-tertiary-container shrink-0"></span>
+            <div class="flex flex-col min-w-0">
+              <span class="font-mono text-[10px] text-on-surface-variant truncate">4K High-Res Video</span>
+              <span class="font-mono text-xs font-medium text-tertiary">9.4 GB <span class="text-outline text-[10px]">(14 files)</span></span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 p-1.5 rounded bg-surface-container/60 border border-outline-variant/15">
+            <span class="w-2 h-2 rounded-xs bg-primary-container shrink-0"></span>
+            <div class="flex flex-col min-w-0">
+              <span class="font-mono text-[10px] text-on-surface-variant truncate">Photos &amp; Bursts</span>
+              <span class="font-mono text-xs font-medium text-primary">2.8 GB <span class="text-outline text-[10px]">(842 items)</span></span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 p-1.5 rounded bg-surface-container/60 border border-outline-variant/15">
+            <span class="w-2 h-2 rounded-xs bg-outline-variant shrink-0"></span>
+            <div class="flex flex-col min-w-0">
+              <span class="font-mono text-[10px] text-on-surface-variant truncate">System OS &amp; Apps</span>
+              <span class="font-mono text-xs font-medium text-on-surface">115.6 GB</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 p-1.5 rounded bg-surface-container/60 border border-outline-variant/15">
+            <span class="w-2 h-2 rounded-xs bg-secondary shrink-0 shadow-[0_0_6px_rgba(78,222,163,0.7)]"></span>
+            <div class="flex flex-col min-w-0">
+              <span class="font-mono text-[10px] text-secondary truncate">Available Space</span>
+              <span class="font-mono text-xs font-medium text-secondary">200 MB CRITICAL</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Targeted Recommendation Banner -->
+        <div class="mt-3 p-2 rounded-lg bg-surface-container-high/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] flex items-center justify-between gap-2 border border-outline-variant/20">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="material-symbols-outlined text-primary-container text-[20px] shrink-0">bolt</span>
+            <p class="text-xs text-on-surface truncate">
+              Offload <span class="font-mono text-primary font-medium">heavy media</span> to free space immediately.
+            </p>
+          </div>
+          <span class="font-mono text-[10px] text-primary-container shrink-0 uppercase tracking-widest font-semibold px-2 py-0.5 rounded bg-surface-container-lowest">TARGETED</span>
+        </div>
+      </section>
+
+      <!-- Tactile Action Triggers -->
+      <section class="flex flex-col gap-2.5 w-full">
+        <!-- Primary Hero Button: Scan Phone Media -->
+        <button id="btnScanStorage" class="group relative w-full rounded-xl bg-primary-container p-4 text-on-primary-fixed shadow-[0_4px_16px_rgba(0,229,255,0.25),inset_0_1px_0_rgba(255,255,255,0.7)] active:translate-y-0.5 active:shadow-[0_1px_2px_rgba(0,0,0,0.4)] transition-all flex items-center justify-between overflow-hidden cursor-pointer" type="button">
+          <div class="absolute -right-4 -bottom-4 w-28 h-28 rounded-full bg-primary/20 blur-xl pointer-events-none"></div>
+          <div class="flex items-center gap-3 text-left">
+            <div class="w-10 h-10 rounded-lg bg-on-primary-fixed text-primary-container flex items-center justify-center shrink-0 shadow-[0_2px_6px_rgba(0,0,0,0.3)]">
+              <span class="material-symbols-outlined text-[24px]">radar</span>
+            </div>
+            <div class="flex flex-col min-w-0">
+              <span class="text-sm font-semibold text-on-primary-fixed tracking-tight">Scan Phone Media for Relief</span>
+              <span class="text-xs text-on-primary-fixed-variant truncate">Auto-detect oversized 4K, dupes &amp; staged files</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1 pl-2 font-mono text-xs font-semibold text-on-primary-fixed shrink-0">
+            <span class="tracking-widest uppercase">SCAN</span>
+            <span class="material-symbols-outlined text-[18px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+          </div>
+        </button>
+
+        <!-- Split Secondary Tactile Buttons -->
+        <div class="grid grid-cols-2 gap-2.5 w-full">
+          <button id="btnPickMedia" class="w-full text-left p-3 rounded-lg bg-surface-container-low hover:bg-surface-container shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_2px_8px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all flex flex-col justify-between h-24 border border-outline-variant/20 cursor-pointer" type="button">
+            <div class="flex items-center justify-between w-full">
+              <div class="w-7 h-7 rounded bg-surface-container-highest flex items-center justify-center text-primary-fixed-dim">
+                <span class="material-symbols-outlined text-[18px]">photo_library</span>
+              </div>
+              <span class="font-mono text-[10px] text-secondary bg-surface-container-lowest px-1.5 py-0.5 rounded">DIRECT</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-xs font-semibold text-on-surface">Photos &amp; Videos</span>
+              <span class="font-mono text-[10px] text-on-surface-variant">Camera Roll Quick Pick</span>
+            </div>
+          </button>
+
+          <button id="btnPickFiles" class="w-full text-left p-3 rounded-lg bg-surface-container-low hover:bg-surface-container shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_2px_8px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all flex flex-col justify-between h-24 border border-outline-variant/20 cursor-pointer" type="button">
+            <div class="flex items-center justify-between w-full">
+              <div class="w-7 h-7 rounded bg-surface-container-highest flex items-center justify-center text-tertiary-container">
+                <span class="material-symbols-outlined text-[18px]">folder_zip</span>
+              </div>
+              <span class="font-mono text-[10px] text-outline bg-surface-container-lowest px-1.5 py-0.5 rounded">FS ACCESS</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-xs font-semibold text-on-surface">Files &amp; Recents</span>
+              <span class="font-mono text-[10px] text-on-surface-variant">Unrestricted Documents</span>
+            </div>
+          </button>
+        </div>
+      </section>
+
+      <!-- Hidden Native File Inputs -->
+      <input type="file" id="inputScan" accept="image/*,video/*,audio/*,application/*" multiple style="display: none;">
+      <input type="file" id="inputMedia" accept="image/*,video/*" multiple style="display: none;">
+      <input type="file" id="inputFiles" multiple style="display: none;">
+
+      <!-- Live Transfer Engine & Chunk Matrix Queue -->
+      <section class="w-full rounded-xl bg-surface-container-low p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_6px_20px_rgba(0,0,0,0.4)] flex flex-col gap-3 border border-outline-variant/20">
+        <!-- Queue Module Header -->
+        <div class="flex items-center justify-between pb-1 border-b border-outline-variant/20">
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-xs text-on-surface font-semibold uppercase tracking-wider">Queue Telemetry</span>
+            <span id="queueBadge" class="font-mono text-[10px] px-2 py-0.5 rounded bg-primary-container/20 text-primary-container font-semibold">0 Staged</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button id="btnPauseResume" class="px-2.5 py-1 rounded bg-surface-container text-on-surface hover:text-primary font-mono text-[10px] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] active:translate-y-0.5 border border-outline-variant/30" type="button">
+              PAUSE
+            </button>
+            <button id="btnClearDone" class="px-2.5 py-1 rounded bg-surface-container text-on-surface-variant hover:text-on-surface font-mono text-[10px] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] active:translate-y-0.5 border border-outline-variant/30" type="button">
+              PURGE
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Telemetry Ribbon -->
+        <div class="grid grid-cols-3 gap-2 p-2.5 rounded-lg bg-surface-container-lowest shadow-[inset_0_1px_2px_rgba(0,0,0,0.7)] border border-outline-variant/20">
+          <div class="flex flex-col">
+            <span class="font-mono text-[10px] text-outline uppercase tracking-wider">IO Bandwidth</span>
+            <div class="flex items-baseline gap-1 mt-0.5">
+              <span id="metricSpeed" class="font-mono text-sm font-semibold text-primary-container">0.0</span>
+              <span class="font-mono text-[10px] text-primary-fixed">MB/s</span>
+            </div>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-mono text-[10px] text-outline uppercase tracking-wider">Duplicates</span>
+            <div class="flex items-baseline gap-1 mt-0.5">
+              <span id="metricSkipped" class="font-mono text-sm font-semibold text-secondary">0</span>
+              <span class="font-mono text-[10px] text-on-surface-variant">saved</span>
+            </div>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-mono text-[10px] text-outline uppercase tracking-wider">Payload State</span>
+            <div class="flex items-baseline gap-1 mt-0.5">
+              <span id="metricTransferred" class="font-mono text-sm font-semibold text-on-surface">0 MB</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transfer Queue List Container -->
+        <div id="queueList" class="flex flex-col gap-2 min-h-[80px]">
+          <div id="emptyQueue" class="flex flex-col items-center justify-center py-6 text-on-surface-variant text-center gap-1.5 border border-dashed border-outline-variant/30 rounded-lg">
+            <span class="material-symbols-outlined text-[28px] text-outline">cloud_upload</span>
+            <span class="text-xs font-mono text-outline">Tap a button above to start transferring files</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Relief Vault: Safe Deletion Assistant -->
+      <section id="cleanupCard" class="w-full rounded-xl bg-surface-container p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_12px_28px_rgba(0,0,0,0.6)] flex flex-col gap-3 border border-outline-variant/20" style="display: none;">
+        <div class="flex items-start gap-3">
+          <div class="w-9 h-9 rounded-lg bg-secondary-container/30 text-secondary flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-[22px]">check_circle</span>
+          </div>
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-2">
+              <span id="cleanupHeading" class="text-sm font-semibold text-on-surface">Verified Deletion Ready</span>
+              <span class="font-mono text-[10px] px-1.5 rounded bg-surface-container-lowest text-secondary font-semibold">SHA-256 OK</span>
+            </div>
+            <p id="cleanupSubtext" class="text-xs text-on-surface-variant mt-0.5">
+              Files are fully mirrored and cryptographically matched on PC vault.
+            </p>
+          </div>
+        </div>
+
+        <button id="btnToggleVerifiedList" class="w-full py-2.5 px-3 rounded-lg bg-surface-container-highest hover:bg-surface-bright text-secondary font-mono text-xs font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] active:translate-y-0.5 transition-all flex items-center justify-center gap-2 border border-outline-variant/30" type="button">
+          <span class="material-symbols-outlined text-[18px]">delete_sweep</span>
+          <span>Review &amp; Safely Empty Phone Space</span>
+          <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+        </button>
+
+        <!-- Collapsible Verified List -->
+        <div id="verifiedFilesList" class="flex-col gap-2 p-2 bg-surface-container-lowest rounded-lg border border-outline-variant/20 font-mono text-xs max-h-48 overflow-y-auto" style="display: none;">
+          <!-- Items populated dynamically -->
+        </div>
+
+        <div class="flex justify-end">
+          <button id="btnCopyFilenames" class="font-mono text-[10px] text-primary hover:text-primary-container transition-colors" type="button">
+            Copy Backed-Up Filenames
+          </button>
+        </div>
+      </section>
+
     </div>
-
-    <!-- Live Metrics Grid -->
-    <section class="metrics-grid">
-      <div class="metric-card">
-        <div class="metric-label">Transferred</div>
-        <div id="metricTransferred" class="metric-value highlight-cyan">0 MB</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Speed</div>
-        <div id="metricSpeed" class="metric-value">0.0 MB/s</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Duplicates Skipped</div>
-        <div id="metricSkipped" class="metric-value highlight-green">0</div>
-      </div>
-    </section>
-
-    <!-- File Picker Actions -->
-      <!-- Smart Storage Scanner -->
-      <button id="btnScanStorage" class="picker-btn picker-btn-scanner" type="button">
-        <div class="btn-icon-wrapper scanner-icon-bg">
-          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-          </svg>
-        </div>
-        <div class="btn-text-content">
-          <span>Scan Mobile Media to Free Space</span>
-          <span class="btn-subtext">Find heavy videos, duplicates & see what to transfer</span>
-        </div>
-      </button>
-
-      <!-- Photos & Videos -->
-      <button id="btnPickMedia" class="picker-btn picker-btn-primary" type="button">
-        <div class="btn-icon-wrapper">
-          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <div class="btn-text-content">
-          <span>Select Photos & Videos</span>
-          <span class="btn-subtext">Free up camera roll space quickly</span>
-        </div>
-      </button>
-
-      <!-- Any Files / Documents -->
-      <button id="btnPickFiles" class="picker-btn picker-btn-secondary" type="button">
-        <div class="btn-icon-wrapper">
-          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-        </div>
-        <div class="btn-text-content">
-          <span>Select Files & Documents</span>
-          <span class="btn-subtext">PDFs, archives, audio, downloads</span>
-        </div>
-      </button>
-    </section>
-
-    <!-- Hidden Native Inputs -->
-    <input type="file" id="inputScan" accept="image/*,video/*,audio/*,application/*" multiple style="display: none;">
-    <input type="file" id="inputMedia" accept="image/*,video/*" multiple style="display: none;">
-    <input type="file" id="inputFiles" multiple style="display: none;">
-
-    <!-- Transfer Queue Section -->
-    <section class="queue-section">
-      <div class="queue-header">
-        <div class="queue-title">
-          <span>Transfer Queue</span>
-          <span id="queueBadge" class="queue-badge">0</span>
-        </div>
-        <div class="queue-actions">
-          <button id="btnPauseResume" class="pill-btn" type="button">Pause</button>
-          <button id="btnClearDone" class="pill-btn" type="button">Clear Finished</button>
-        </div>
-      </div>
-
-      <!-- Queue List -->
-      <div id="queueList" class="queue-list">
-        <div id="emptyQueue" class="empty-queue">
-          <svg class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-          </svg>
-          <p>Tap a button above to start transferring files</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Make Mobile Space Empty: Safe Storage Cleanup Assistant -->
-    <section id="cleanupCard" class="cleanup-card" style="display: none;">
-      <div class="cleanup-top">
-        <div class="cleanup-icon">
-          <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <div class="cleanup-info">
-          <h4 id="cleanupHeading">Ready to Make Mobile Space Empty</h4>
-          <p id="cleanupSubtext">Files are safely verified on PC. You can now safely delete them from phone gallery.</p>
-        </div>
-      </div>
-      <div class="cleanup-actions">
-        <button id="btnToggleVerifiedList" class="pill-btn" type="button">View Safe Files</button>
-        <button id="btnCopyFilenames" class="pill-btn" type="button">Copy Filenames</button>
-      </div>
-      <div id="verifiedFilesList" class="verified-files-list" style="display: none;"></div>
-    </section>
   </main>
 
-  <!-- Mobile Storage Scanner & Analysis Modal -->
-  <div id="scannerModal" class="scanner-modal" style="display: none;">
-    <div class="scanner-modal-header">
-      <h3>
-        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-        <span>Mobile Storage Analysis</span>
-      </h3>
-      <button id="btnCloseScanner" class="btn-close-scanner" type="button">&times;</button>
+  <!-- BOTTOM FIXED NAVIGATION BAR -->
+  <nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-4px_16px_rgba(0,0,0,0.4)] border-t border-outline-variant/20">
+    <div class="flex justify-around items-center h-16 px-2 max-w-md mx-auto">
+      <a class="min-w-[44px] min-h-[44px] flex flex-col items-center justify-center gap-0.5 text-primary-container" href="#">
+        <span class="material-symbols-outlined text-[20px]">grid_view</span>
+        <span class="font-mono text-[10px] uppercase tracking-wide">Matrix</span>
+      </a>
+      <a class="min-w-[44px] min-h-[44px] flex flex-col items-center justify-center gap-0.5 text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+        <span class="material-symbols-outlined text-[20px]">sync_alt</span>
+        <span class="font-mono text-[10px] uppercase tracking-wide">Transfer</span>
+      </a>
+      <a class="min-w-[44px] min-h-[44px] flex flex-col items-center justify-center gap-0.5 text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+        <span class="material-symbols-outlined text-[20px]">hard_drive_2</span>
+        <span class="font-mono text-[10px] uppercase tracking-wide">Relief</span>
+      </a>
+      <a class="min-w-[44px] min-h-[44px] flex flex-col items-center justify-center gap-0.5 text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+        <span class="material-symbols-outlined text-[20px]">hub</span>
+        <span class="font-mono text-[10px] uppercase tracking-wide">Peers</span>
+      </a>
     </div>
+  </nav>
 
-    <div class="scanner-modal-body">
-      <!-- Breakdown Summary Card -->
-      <div class="scanner-summary-card">
-        <div class="summary-headline">
+  <!-- SMART MOBILE STORAGE SCANNER MODAL -->
+  <div id="scannerModal" class="fixed inset-0 z-50 modal-backdrop hidden flex-col justify-end sm:justify-center p-0 sm:p-4">
+    <div class="bg-surface-container-low rounded-t-2xl sm:rounded-2xl p-4 w-full max-w-lg max-h-[85vh] flex flex-col border border-outline-variant/30 shadow-2xl overflow-hidden mx-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-outline-variant/20">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary-container text-[22px]">radar</span>
+          <div class="flex flex-col">
+            <h3 class="text-sm font-semibold text-on-surface">Storage Relief Analysis</h3>
+            <span id="scanItemCount" class="font-mono text-[10px] text-on-surface-variant">Scanning media...</span>
+          </div>
+        </div>
+        <button id="btnCloseScanner" class="text-on-surface-variant hover:text-on-surface p-1">
+          <span class="material-symbols-outlined text-[22px]">close</span>
+        </button>
+      </div>
+
+      <!-- Scrollable Scanner Content -->
+      <div class="flex-1 overflow-y-auto py-3 space-y-3">
+        
+        <!-- Total Size Card -->
+        <div class="bg-surface-container rounded-lg p-3 flex items-center justify-between border border-outline-variant/20">
           <div>
-            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-dim); font-weight: 700;">Scanned Media</div>
-            <div id="scanTotalSize" class="summary-total-size">0 MB</div>
+            <span class="font-mono text-[10px] text-outline uppercase tracking-wider">TOTAL SCANNED</span>
+            <div id="scanTotalSize" class="text-2xl font-bold text-primary font-mono">0 MB</div>
           </div>
-          <div id="scanItemCount" class="summary-items-count">0 items scanned</div>
+          <span class="material-symbols-outlined text-secondary text-[28px]">data_usage</span>
         </div>
 
-        <!-- Proportional Colored Bar -->
-        <div class="breakdown-bar">
-          <div id="barVideos" class="bar-segment videos" style="width: 0%;"></div>
-          <div id="barPhotos" class="bar-segment photos" style="width: 0%;"></div>
-          <div id="barDocs" class="bar-segment docs" style="width: 0%;"></div>
+        <!-- Proportional Media Progress Bar -->
+        <div class="w-full bg-surface-container-lowest h-3 rounded flex overflow-hidden p-0.5 gap-0.5 shadow-inner border border-outline-variant/20">
+          <div id="barVideos" class="h-full bg-tertiary-container rounded-xs" style="width: 0%;"></div>
+          <div id="barPhotos" class="h-full bg-primary-container rounded-xs" style="width: 0%;"></div>
+          <div id="barDocs" class="h-full bg-outline-variant rounded-xs" style="width: 0%;"></div>
         </div>
 
-        <div class="breakdown-legend">
-          <div class="legend-item">
-            <span class="legend-dot videos"></span>
-            <span id="legendVideos">Videos: 0 MB</span>
+        <div class="grid grid-cols-3 gap-1 font-mono text-[9px] text-on-surface-variant">
+          <span id="legendVideos" class="text-tertiary truncate">Videos: 0 MB</span>
+          <span id="legendPhotos" class="text-primary truncate">Photos: 0 MB</span>
+          <span id="legendDocs" class="text-outline truncate">Docs: 0 MB</span>
+        </div>
+
+        <!-- PC Duplicate Pre-Check Status -->
+        <div class="p-2.5 rounded-lg bg-surface-container border border-outline-variant/20 font-mono text-[10px]">
+          <div class="flex items-center justify-between text-on-surface">
+            <span class="font-semibold">PC Duplicate Pre-Check:</span>
+            <span id="scanDupStatus" class="text-secondary font-bold">Scanning...</span>
           </div>
-          <div class="legend-item">
-            <span class="legend-dot photos"></span>
-            <span id="legendPhotos">Photos: 0 MB</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-dot docs"></span>
-            <span id="legendDocs">Other: 0 MB</span>
+          <div id="scanDupDetails" class="text-outline mt-0.5">
+            Checking files against PC storage ledger to eliminate wasted uploads...
           </div>
         </div>
+
+        <!-- Filter Chips -->
+        <div class="flex flex-wrap gap-1">
+          <button class="scanner-pill active px-2.5 py-1 rounded bg-surface-container-high text-primary font-mono text-[10px] font-semibold border border-outline-variant/30" data-scan-filter="all">
+            All (<span id="countScanAll">0</span>)
+          </button>
+          <button class="scanner-pill px-2.5 py-1 rounded bg-surface-container text-on-surface-variant font-mono text-[10px] border border-outline-variant/20" data-scan-filter="heavy">
+            Heavy &gt; 50MB (<span id="countScanHeavy">0</span>)
+          </button>
+          <button class="scanner-pill px-2.5 py-1 rounded bg-surface-container text-on-surface-variant font-mono text-[10px] border border-outline-variant/20" data-scan-filter="new">
+            New to Transfer (<span id="countScanNew">0</span>)
+          </button>
+          <button class="scanner-pill px-2.5 py-1 rounded bg-surface-container text-on-surface-variant font-mono text-[10px] border border-outline-variant/20" data-scan-filter="on-pc">
+            On PC (<span id="countScanOnPc">0</span>)
+          </button>
+        </div>
+
+        <!-- Selection summary bar -->
+        <div class="flex items-center justify-between px-1 font-mono text-[11px] text-on-surface-variant">
+          <span id="selectionCountText">0 selected</span>
+          <div class="flex gap-2">
+            <button id="btnSelectAllNew" class="px-2 py-0.5 rounded bg-surface-container-high text-primary hover:bg-surface-bright" type="button">Select All New</button>
+            <button id="btnSelectHeavy" class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface hover:bg-surface-bright" type="button">Select Heavy</button>
+          </div>
+        </div>
+
+        <!-- Scanned Files List -->
+        <div id="scannerFileList" class="space-y-1.5 max-h-56 overflow-y-auto"></div>
       </div>
 
-      <!-- Pre-Flight Duplicate Scan Live Status -->
-      <div class="precheck-box">
-        <div class="precheck-status-row">
-          <span style="font-weight: 600; color: #fff;">PC Duplicate Pre-Check:</span>
-          <span id="scanDupStatus" style="color: var(--accent-cyan); font-weight: 700;">Scanning...</span>
-        </div>
-        <div id="scanDupDetails" style="font-size: 0.75rem; color: var(--text-muted);">
-          Checking files against PC storage ledger to eliminate wasted uploads...
-        </div>
+      <!-- Sticky Bottom Action Button -->
+      <div class="pt-3 border-t border-outline-variant/20">
+        <button id="btnTransferSelected" class="w-full py-3 px-4 rounded-xl bg-primary-container hover:bg-primary text-on-primary-fixed font-mono text-xs font-semibold shadow-lg flex items-center justify-center gap-2 active:translate-y-0.5 transition-all cursor-pointer" type="button">
+          <span class="material-symbols-outlined text-[18px]">bolt</span>
+          <span id="btnTransferText">Transfer Selected (0 MB)</span>
+        </button>
       </div>
 
-      <!-- Filter Chips -->
-      <div class="scanner-filter-bar">
-        <button class="scanner-pill active" data-scan-filter="all">All (<span id="countAll">0</span>)</button>
-        <button class="scanner-pill" data-scan-filter="heavy">Heavy Videos &gt; 50MB (<span id="countHeavy">0</span>)</button>
-        <button class="scanner-pill" data-scan-filter="new">New to Transfer (<span id="countNew">0</span>)</button>
-        <button class="scanner-pill" data-scan-filter="on-pc">Already on PC (<span id="countOnPc">0</span>)</button>
-      </div>
-
-      <!-- Quick Selection Bar -->
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 4px;">
-        <span style="font-size: 0.78rem; color: var(--text-dim);" id="selectionCountText">0 selected</span>
-        <div style="display: flex; gap: 8px;">
-          <button id="btnSelectAllNew" class="pill-btn" style="padding: 4px 10px; font-size: 0.72rem;" type="button">Select All New</button>
-          <button id="btnSelectHeavy" class="pill-btn" style="padding: 4px 10px; font-size: 0.72rem;" type="button">Select Heavy Only</button>
-        </div>
-      </div>
-
-      <!-- Scanned Files List -->
-      <div id="scannerFileList" class="scanner-file-list"></div>
-    </div>
-
-    <!-- Sticky Bottom Transfer Bar -->
-    <div class="scanner-bottom-bar">
-      <button id="btnTransferSelected" class="btn-transfer-selected" type="button">
-        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-        </svg>
-        <span id="btnTransferText">Transfer Selected (0 MB)</span>
-      </button>
     </div>
   </div>
 
-  <!-- PIN Entry Modal (if needed) -->
-  <div id="authModal" class="modal-overlay" style="display: none;">
-    <div class="modal-card">
-      <h3 style="margin-bottom: 8px;">Connect to PC</h3>
-      <p style="font-size: 0.85rem; color: var(--text-muted);">Enter the 6-digit PIN displayed on your PC screen</p>
-      <input type="tel" id="inputPin" class="pin-input" maxlength="6" placeholder="------" pattern="[0-9]*">
-      <button id="btnSubmitPin" class="picker-btn picker-btn-primary" style="justify-content: center; padding: 12px;">Connect</button>
+  <!-- AUTH PIN MODAL -->
+  <div id="authModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-surface-container-low rounded-xl p-6 w-full max-w-xs border border-outline-variant/30 shadow-2xl flex flex-col items-center gap-4 text-center">
+      <div class="w-12 h-12 rounded-full bg-primary-container/20 text-primary-container flex items-center justify-center">
+        <span class="material-symbols-outlined text-[24px]">lock</span>
+      </div>
+      <div>
+        <h3 class="text-sm font-semibold text-on-surface">Enter Session PIN</h3>
+        <p class="font-mono text-xs text-on-surface-variant mt-1">Enter the 6-digit PIN code shown on your PC screen</p>
+      </div>
+      <input type="tel" id="inputPin" class="w-full bg-surface-container-lowest border border-outline-variant/40 rounded-lg p-2.5 text-center font-mono text-xl tracking-widest text-primary font-bold focus:outline-none focus:border-primary-container shadow-inner" maxlength="6" placeholder="------" pattern="[0-9]*"/>
+      <button id="btnSubmitPin" class="w-full py-2.5 rounded-lg bg-primary-container hover:bg-primary text-on-primary-fixed font-mono text-xs font-semibold cursor-pointer">
+        Authorize &amp; Connect
+      </button>
     </div>
   </div>
 

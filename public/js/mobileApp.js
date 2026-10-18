@@ -38,6 +38,20 @@ document.addEventListener('DOMContentLoaded', () => {
   let skippedDuplicatesCount = 0;
   const verifiedFiles = [];
 
+  function showModal(el) {
+    if (!el) return;
+    el.classList.remove('hidden');
+    el.classList.add('flex');
+    el.style.display = 'flex';
+  }
+
+  function hideModal(el) {
+    if (!el) return;
+    el.classList.add('hidden');
+    el.classList.remove('flex');
+    el.style.display = 'none';
+  }
+
   // Initialize Uploader
   const uploader = new ChunkUploader({
     token: sessionToken,
@@ -45,17 +59,17 @@ document.addEventListener('DOMContentLoaded', () => {
     onProgress: (item) => updateFileProgress(item),
     onFileStatus: (item) => updateFileStatus(item),
     onSpeedUpdate: (mbps) => {
-      metricSpeed.textContent = `${mbps.toFixed(1)} MB/s`;
+      metricSpeed.textContent = mbps.toFixed(1);
     },
     onQueueComplete: () => {
-      btnPauseResume.textContent = 'Pause';
-      metricSpeed.textContent = '0.0 MB/s';
+      btnPauseResume.textContent = 'PAUSE';
+      metricSpeed.textContent = '0.0';
     }
   });
 
   // Check auth
   if (!sessionToken && !sessionPin) {
-    authModal.style.display = 'flex';
+    showModal(authModal);
   } else {
     validateSession();
   }
@@ -80,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('airtransfer_token', sessionToken);
         localStorage.setItem('airtransfer_pin', sessionPin);
         uploader.setCredentials(sessionToken, sessionPin);
-        authModal.style.display = 'none';
+        hideModal(authModal);
         validateSession();
       } else {
         alert(data.error || 'Authentication failed');
@@ -99,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setConnected(true);
       } else {
         setConnected(false);
-        authModal.style.display = 'flex';
+        showModal(authModal);
       }
     } catch {
       setConnected(false);
@@ -108,11 +122,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setConnected(connected) {
     if (connected) {
-      connectionStatus.className = 'status-indicator';
-      connectionText.textContent = 'Connected';
+      connectionText.textContent = 'Connected • 5GHz LAN (866 Mbps)';
+      connectionText.className = 'font-mono text-[10px] text-secondary font-medium';
     } else {
-      connectionStatus.className = 'status-indicator disconnected';
-      connectionText.textContent = 'Offline';
+      connectionText.textContent = 'Offline (Reconnecting...)';
+      connectionText.className = 'font-mono text-[10px] text-error font-medium';
     }
   }
 
@@ -139,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnSelectHeavy = document.getElementById('btnSelectHeavy');
   const scannerPills = document.querySelectorAll('.scanner-pill');
 
-  let scannedItems = []; // Array of scanned file objects
+  let scannedItems = [];
   let currentScanFilter = 'all';
 
   // File Picker bindings
@@ -158,15 +172,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function handleFileSelection(fileList) {
     if (!fileList || fileList.length === 0) return;
-    emptyQueue.style.display = 'none';
-    const added = await uploader.addFiles(fileList);
+    if (emptyQueue) emptyQueue.style.display = 'none';
+    await uploader.addFiles(fileList);
     updateQueueBadge();
-    // Reset inputs so same files can be re-selected if testing
     inputMedia.value = '';
     inputFiles.value = '';
   }
 
-  // --- Storage Scanner & Analysis Logic ---
+  // Storage Scanner Logic
   async function startStorageScan(fileList) {
     if (!fileList || fileList.length === 0) return;
     
@@ -196,17 +209,15 @@ document.addEventListener('DOMContentLoaded', () => {
         mtime: file.lastModified,
         category: isVideo ? 'Videos' : isPhoto ? 'Photos' : 'Documents',
         isHeavy,
-        selected: true, // checked by default
-        status: 'checking', // checking, new, on_pc
+        selected: true,
+        status: 'checking',
         reason: null
       });
     }
 
-    // Update Summary Header
     scanTotalSize.textContent = formatBytes(totalBytes);
     scanItemCount.textContent = `${scannedItems.length} media items found`;
 
-    // Proportional breakdown bars
     const safeTotal = totalBytes || 1;
     const vPct = ((videoBytes / safeTotal) * 100).toFixed(1);
     const pPct = ((photoBytes / safeTotal) * 100).toFixed(1);
@@ -220,13 +231,12 @@ document.addEventListener('DOMContentLoaded', () => {
     legendPhotos.textContent = `Photos: ${formatBytes(photoBytes)} (${pPct}%)`;
     legendDocs.textContent = `Docs/Other: ${formatBytes(docBytes)} (${dPct}%)`;
 
-    scannerModal.style.display = 'flex';
+    showModal(scannerModal);
     inputScan.value = '';
 
     renderScannerList();
     updateSelectionSummary();
 
-    // Run background duplicate check against PC
     runDuplicateScanAgainstPc();
   }
 
@@ -260,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const data = await checkRes.json();
           if (data.status === 'duplicate') {
             item.status = 'on_pc';
-            item.selected = false; // Uncheck duplicates so user transfers only new files!
+            item.selected = false;
             alreadyOnPcCount++;
             savedBytes += item.size;
           } else {
@@ -272,7 +282,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Update Banner
     if (alreadyOnPcCount > 0) {
       scanDupStatus.textContent = `⚡ ${alreadyOnPcCount} Files Already on PC`;
       scanDupDetails.textContent = `${formatBytes(savedBytes)} is already backed up on your PC! Unchecked to save transfer time and battery.`;
@@ -286,7 +295,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderScannerList() {
-    // Filter items
     const filtered = scannedItems.filter(item => {
       if (currentScanFilter === 'heavy') return item.isHeavy;
       if (currentScanFilter === 'new') return item.status === 'new';
@@ -294,39 +302,43 @@ document.addEventListener('DOMContentLoaded', () => {
       return true;
     });
 
-    // Update filter counts
-    document.getElementById('countAll').textContent = scannedItems.length;
-    document.getElementById('countHeavy').textContent = scannedItems.filter(i => i.isHeavy).length;
-    document.getElementById('countNew').textContent = scannedItems.filter(i => i.status === 'new').length;
-    document.getElementById('countOnPc').textContent = scannedItems.filter(i => i.status === 'on_pc').length;
+    const cAll = document.getElementById('countScanAll') || document.getElementById('countAll');
+    const cHeavy = document.getElementById('countScanHeavy') || document.getElementById('countHeavy');
+    const cNew = document.getElementById('countScanNew') || document.getElementById('countNew');
+    const cOnPc = document.getElementById('countScanOnPc') || document.getElementById('countOnPc');
+
+    if (cAll) cAll.textContent = scannedItems.length;
+    if (cHeavy) cHeavy.textContent = scannedItems.filter(i => i.isHeavy).length;
+    if (cNew) cNew.textContent = scannedItems.filter(i => i.status === 'new').length;
+    if (cOnPc) cOnPc.textContent = scannedItems.filter(i => i.status === 'on_pc').length;
 
     if (filtered.length === 0) {
-      scannerFileList.innerHTML = `<div style="text-align: center; color: var(--text-dim); padding: 24px;">No items match this filter.</div>`;
+      scannerFileList.innerHTML = `<div class="text-center font-mono text-xs text-on-surface-variant py-6">No items match this filter.</div>`;
       return;
     }
 
     scannerFileList.innerHTML = filtered.map(item => {
       const isChecked = item.selected ? 'checked' : '';
-      const selectedClass = item.selected ? 'selected' : '';
-      
       let badgeHtml = '';
       if (item.isHeavy) {
-        badgeHtml += `<span class="heavy-badge">Heavy &gt; 50MB</span>`;
+        badgeHtml += `<span class="px-1.5 py-0.5 rounded bg-error-container/40 text-error font-mono text-[9px] font-semibold">HEAVY</span>`;
       }
       if (item.status === 'on_pc') {
-        badgeHtml += `<span class="on-pc-badge">Already on PC</span>`;
+        badgeHtml += `<span class="px-1.5 py-0.5 rounded bg-secondary-container/20 text-secondary font-mono text-[9px] font-semibold">ON PC</span>`;
       } else if (item.status === 'new') {
-        badgeHtml += `<span style="background: rgba(56, 189, 248, 0.15); color: var(--accent-blue); padding: 1px 6px; border-radius: 4px; font-weight: 600;">New</span>`;
+        badgeHtml += `<span class="px-1.5 py-0.5 rounded bg-primary-container/20 text-primary-container font-mono text-[9px] font-semibold">NEW</span>`;
       }
 
       return `
-        <div class="scanner-item ${selectedClass}" data-id="${item.id}">
-          <input type="checkbox" ${isChecked} data-id="${item.id}">
-          <div class="file-icon-box" style="width: 32px; height: 32px;">${getFileIcon(item.name)}</div>
-          <div class="scanner-item-details">
-            <div class="scanner-item-name" title="${item.name}">${item.name}</div>
-            <div class="scanner-item-sub">
-              <span>${formatBytes(item.size)}</span>
+        <div class="p-2.5 rounded-lg bg-surface-container flex items-center gap-2.5 border border-outline-variant/20 hover:bg-surface-container-high transition-colors cursor-pointer" data-id="${item.id}">
+          <input type="checkbox" ${isChecked} data-id="${item.id}" class="w-4 h-4 accent-primary-container cursor-pointer"/>
+          <span class="material-symbols-outlined text-primary-container text-[20px] shrink-0">
+            ${item.category === 'Videos' ? 'movie' : item.category === 'Photos' ? 'image' : 'description'}
+          </span>
+          <div class="flex flex-col min-w-0 flex-1">
+            <span class="font-mono text-xs text-on-surface truncate font-medium">${item.name}</span>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="font-mono text-[10px] text-on-surface-variant">${formatBytes(item.size)}</span>
               ${badgeHtml}
             </div>
           </div>
@@ -334,8 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }).join('');
 
-    // Attach click handlers to checkboxes and row
-    scannerFileList.querySelectorAll('.scanner-item').forEach(row => {
+    scannerFileList.querySelectorAll('[data-id]').forEach(row => {
       row.addEventListener('click', (e) => {
         if (e.target.tagName !== 'INPUT') {
           const cb = row.querySelector('input[type="checkbox"]');
@@ -354,11 +365,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const item = scannedItems.find(i => i.id === id);
     if (item) {
       item.selected = isChecked;
-      const row = scannerFileList.querySelector(`.scanner-item[data-id="${id}"]`);
-      if (row) {
-        if (isChecked) row.classList.add('selected');
-        else row.classList.remove('selected');
-      }
       updateSelectionSummary();
     }
   }
@@ -371,22 +377,22 @@ document.addEventListener('DOMContentLoaded', () => {
     btnTransferText.textContent = `Transfer Selected (${formatBytes(selectedBytes)})`;
   }
 
-  // Scanner filter buttons
   scannerPills.forEach(pill => {
     pill.addEventListener('click', () => {
-      scannerPills.forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
+      scannerPills.forEach(p => {
+        p.classList.remove('active', 'bg-surface-container-high', 'text-primary');
+        p.classList.add('bg-surface-container', 'text-on-surface-variant');
+      });
+      pill.classList.add('active', 'bg-surface-container-high', 'text-primary');
+      pill.classList.remove('bg-surface-container', 'text-on-surface-variant');
       currentScanFilter = pill.dataset.scanFilter;
       renderScannerList();
     });
   });
 
-  // Quick Selectors
   if (btnSelectAllNew) {
     btnSelectAllNew.addEventListener('click', () => {
-      scannedItems.forEach(i => {
-        i.selected = (i.status !== 'on_pc');
-      });
+      scannedItems.forEach(i => { i.selected = (i.status !== 'on_pc'); });
       renderScannerList();
       updateSelectionSummary();
     });
@@ -394,22 +400,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnSelectHeavy) {
     btnSelectHeavy.addEventListener('click', () => {
-      scannedItems.forEach(i => {
-        i.selected = i.isHeavy;
-      });
+      scannedItems.forEach(i => { i.selected = i.isHeavy; });
       renderScannerList();
       updateSelectionSummary();
     });
   }
 
-  // Close scanner modal
   if (btnCloseScanner) {
-    btnCloseScanner.addEventListener('click', () => {
-      scannerModal.style.display = 'none';
-    });
+    btnCloseScanner.addEventListener('click', () => hideModal(scannerModal));
   }
 
-  // Transfer Selected Button
   if (btnTransferSelected) {
     btnTransferSelected.addEventListener('click', async () => {
       const toTransfer = scannedItems.filter(i => i.selected).map(i => i.file);
@@ -417,8 +417,8 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Please select at least one file to transfer.');
         return;
       }
-      scannerModal.style.display = 'none';
-      emptyQueue.style.display = 'none';
+      hideModal(scannerModal);
+      if (emptyQueue) emptyQueue.style.display = 'none';
       await uploader.addFiles(toTransfer);
       updateQueueBadge();
     });
@@ -427,46 +427,41 @@ document.addEventListener('DOMContentLoaded', () => {
   btnPauseResume.addEventListener('click', () => {
     if (uploader.isPaused) {
       uploader.resumeAll();
-      btnPauseResume.textContent = 'Pause';
+      btnPauseResume.textContent = 'PAUSE';
     } else {
       uploader.pauseAll();
-      btnPauseResume.textContent = 'Resume All';
-      metricSpeed.textContent = '0.0 MB/s';
+      btnPauseResume.textContent = 'RESUME';
+      metricSpeed.textContent = '0.0';
     }
   });
 
   btnClearDone.addEventListener('click', () => {
     uploader.clearFinished();
-    // Remove completed DOM items
     const finishedNodes = queueList.querySelectorAll('.file-item[data-status="completed"], .file-item[data-status="duplicate_skipped"]');
     finishedNodes.forEach(n => n.remove());
-    if (queueList.querySelectorAll('.file-item').length === 0) {
-      emptyQueue.style.display = 'block';
+    if (queueList.querySelectorAll('.file-item').length === 0 && emptyQueue) {
+      emptyQueue.style.display = 'flex';
     }
     updateQueueBadge();
   });
 
   function updateQueueBadge() {
-    queueBadge.textContent = uploader.queue.length;
+    if (queueBadge) queueBadge.textContent = `${uploader.queue.length} Staged`;
   }
 
   function formatBytes(bytes) {
-    if (bytes === 0) return '0 B';
+    if (!bytes || bytes === 0) return '0 B';
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  function getFileIcon(filename) {
+  function getFileIconName(filename) {
     const ext = filename.split('.').pop().toLowerCase();
-    if (['jpg', 'jpeg', 'png', 'heic', 'webp', 'gif'].includes(ext)) {
-      return `<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>`;
-    }
-    if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext)) {
-      return `<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>`;
-    }
-    return `<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>`;
+    if (['jpg', 'jpeg', 'png', 'heic', 'webp', 'gif', 'dng'].includes(ext)) return 'image';
+    if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext)) return 'movie';
+    return 'description';
   }
 
   function getOrCreateFileElement(item) {
@@ -474,23 +469,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!el) {
       el = document.createElement('div');
       el.id = `item-${item.fileId}`;
-      el.className = 'file-item';
+      el.className = 'file-item p-3 rounded-lg bg-surface-container/70 flex flex-col gap-2 border border-outline-variant/20 transition-all';
       el.dataset.status = item.status;
       el.innerHTML = `
-        <div class="file-main-info">
-          <div class="file-identity">
-            <div class="file-icon-box">${getFileIcon(item.name)}</div>
-            <div class="file-details">
-              <div class="file-name" title="${item.name}">${item.name}</div>
-              <div class="file-submeta">${formatBytes(item.size)}</div>
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="status-icon material-symbols-outlined text-primary-container text-[18px] shrink-0">hourglass_top</span>
+            <div class="flex flex-col min-w-0">
+              <span class="font-mono text-xs text-on-surface font-medium truncate" title="${item.name}">${item.name}</span>
+              <span class="font-mono text-[10px] text-on-surface-variant">${formatBytes(item.size)}</span>
             </div>
           </div>
-          <div class="status-chip-container">
-            <span class="status-chip chip-pending">Pending</span>
+          <div class="text-right shrink-0">
+            <span class="status-chip font-mono text-[10px] px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-semibold">Pending</span>
           </div>
         </div>
-        <div class="progress-track">
-          <div class="progress-fill" style="width: 0%;"></div>
+        <div class="w-full bg-surface-container-lowest h-2 rounded overflow-hidden p-0.5 border border-outline-variant/20 shadow-inner">
+          <div class="progress-fill h-full bg-gradient-to-r from-primary-container to-secondary rounded-xs transition-all duration-300" style="width: 0%;"></div>
         </div>
       `;
       queueList.appendChild(el);
@@ -501,10 +496,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateFileProgress(item) {
     const el = getOrCreateFileElement(item);
     const fill = el.querySelector('.progress-fill');
-    fill.style.width = `${item.progress}%`;
+    if (fill) fill.style.width = `${item.progress}%`;
     const chip = el.querySelector('.status-chip');
-    chip.className = 'status-chip chip-uploading';
-    chip.textContent = `${item.progress}%`;
+    if (chip) {
+      chip.className = 'status-chip font-mono text-[10px] px-2 py-0.5 rounded bg-primary-container/20 text-primary-container font-semibold';
+      chip.textContent = `${item.progress}%`;
+    }
   }
 
   function updateFileStatus(item) {
@@ -512,53 +509,81 @@ document.addEventListener('DOMContentLoaded', () => {
     el.dataset.status = item.status;
     const fill = el.querySelector('.progress-fill');
     const chip = el.querySelector('.status-chip');
+    const icon = el.querySelector('.status-icon');
 
     if (item.status === 'checking') {
-      chip.className = 'status-chip chip-checking';
-      chip.textContent = 'Checking Duplicate...';
+      if (chip) {
+        chip.className = 'status-chip font-mono text-[10px] px-2 py-0.5 rounded bg-surface-container-highest text-primary font-semibold';
+        chip.textContent = 'CHECKING DUP...';
+      }
+      if (icon) icon.textContent = 'sync';
     } else if (item.status === 'uploading') {
-      el.classList.add('uploading');
-      chip.className = 'status-chip chip-uploading';
-      chip.textContent = `${item.progress}%`;
+      if (chip) {
+        chip.className = 'status-chip font-mono text-[10px] px-2 py-0.5 rounded bg-primary-container/20 text-primary-container font-semibold';
+        chip.textContent = `${item.progress}%`;
+      }
+      if (icon) {
+        icon.className = 'status-icon material-symbols-outlined text-primary-container text-[18px] shrink-0 animate-spin';
+        icon.textContent = 'sync';
+      }
     } else if (item.status === 'duplicate_skipped') {
-      el.classList.remove('uploading');
-      chip.className = 'status-chip chip-duplicate';
-      chip.textContent = 'Skipped (Duplicate)';
-      fill.className = 'progress-fill duplicate';
-      fill.style.width = '100%';
+      if (chip) {
+        chip.className = 'status-chip font-mono text-[10px] px-2 py-0.5 rounded bg-secondary-container/20 text-secondary font-semibold';
+        chip.textContent = 'SKIPPED (EXISTS)';
+      }
+      if (icon) {
+        icon.className = 'status-icon material-symbols-outlined text-secondary text-[18px] shrink-0';
+        icon.textContent = 'verified';
+      }
+      if (fill) {
+        fill.className = 'progress-fill h-full bg-secondary rounded-xs';
+        fill.style.width = '100%';
+      }
       skippedDuplicatesCount++;
-      metricSkipped.textContent = skippedDuplicatesCount;
+      if (metricSkipped) metricSkipped.textContent = skippedDuplicatesCount;
     } else if (item.status === 'finalizing') {
-      chip.className = 'status-chip chip-checking';
-      chip.textContent = 'Verifying SHA-256...';
+      if (chip) {
+        chip.className = 'status-chip font-mono text-[10px] px-2 py-0.5 rounded bg-surface-container-highest text-primary font-semibold';
+        chip.textContent = 'VERIFYING SHA-256...';
+      }
     } else if (item.status === 'completed') {
-      el.classList.remove('uploading');
-      chip.className = 'status-chip chip-completed';
-      chip.textContent = 'Verified & Saved';
-      fill.className = 'progress-fill completed';
-      fill.style.width = '100%';
+      if (chip) {
+        chip.className = 'status-chip font-mono text-[10px] px-2 py-0.5 rounded bg-secondary-container/30 text-secondary font-semibold';
+        chip.textContent = '100% VERIFIED';
+      }
+      if (icon) {
+        icon.className = 'status-icon material-symbols-outlined text-secondary text-[18px] shrink-0';
+        icon.textContent = 'check_circle';
+      }
+      if (fill) {
+        fill.className = 'progress-fill h-full bg-secondary rounded-xs';
+        fill.style.width = '100%';
+      }
       totalTransferredBytes += item.size;
-      metricTransferred.textContent = formatBytes(totalTransferredBytes);
+      if (metricTransferred) metricTransferred.textContent = formatBytes(totalTransferredBytes);
 
-      // Track verified files for mobile space emptying
       if (!verifiedFiles.some(f => f.name === item.name)) {
         verifiedFiles.push({ name: item.name, size: item.size });
       }
       updateCleanupCard();
     } else if (item.status === 'failed') {
-      el.classList.remove('uploading');
-      chip.className = 'status-chip chip-failed';
-      chip.textContent = 'Failed - Tap to Retry';
-      fill.className = 'progress-fill failed';
-      el.style.cursor = 'pointer';
+      if (chip) {
+        chip.className = 'status-chip font-mono text-[10px] px-2 py-0.5 rounded bg-error-container/40 text-error font-semibold';
+        chip.textContent = 'FAILED (TAP TO RETRY)';
+      }
+      if (icon) {
+        icon.className = 'status-icon material-symbols-outlined text-error text-[18px] shrink-0';
+        icon.textContent = 'error';
+      }
       el.onclick = () => {
         item.status = 'pending';
         uploader.processQueue();
       };
     } else if (item.status === 'paused') {
-      el.classList.remove('uploading');
-      chip.className = 'status-chip chip-pending';
-      chip.textContent = 'Paused';
+      if (chip) {
+        chip.className = 'status-chip font-mono text-[10px] px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-semibold';
+        chip.textContent = 'PAUSED';
+      }
     }
 
     updateQueueBadge();
@@ -566,14 +591,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateCleanupCard() {
     if (verifiedFiles.length > 0 && cleanupCard) {
-      cleanupCard.style.display = 'block';
+      cleanupCard.style.display = 'flex';
       cleanupHeading.textContent = `🎉 ${verifiedFiles.length} File${verifiedFiles.length > 1 ? 's' : ''} Ready to Clear from Phone`;
       cleanupSubtext.textContent = `${formatBytes(totalTransferredBytes)} safely verified on PC! You can now safely delete these items from your gallery to make your mobile space empty.`;
       
       verifiedFilesList.innerHTML = verifiedFiles.map(f => `
-        <div class="verified-file-entry">
-          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 75%;">${f.name}</span>
-          <span style="color: var(--accent-green); font-weight: 600;">${formatBytes(f.size)}</span>
+        <div class="flex items-center justify-between p-1.5 rounded bg-surface-container">
+          <span class="truncate max-w-[70%] text-on-surface">${f.name}</span>
+          <span class="text-secondary font-semibold">${formatBytes(f.size)}</span>
         </div>
       `).join('');
     }
@@ -583,7 +608,6 @@ document.addEventListener('DOMContentLoaded', () => {
     btnToggleVerifiedList.addEventListener('click', () => {
       const isVisible = verifiedFilesList.style.display === 'flex';
       verifiedFilesList.style.display = isVisible ? 'none' : 'flex';
-      btnToggleVerifiedList.textContent = isVisible ? 'View Safe Files' : 'Hide List';
     });
   }
 
@@ -591,8 +615,8 @@ document.addEventListener('DOMContentLoaded', () => {
     btnCopyFilenames.addEventListener('click', () => {
       const names = verifiedFiles.map(f => f.name).join('\n');
       navigator.clipboard.writeText(names).then(() => {
-        btnCopyFilenames.textContent = 'Copied!';
-        setTimeout(() => { btnCopyFilenames.textContent = 'Copy Filenames'; }, 2000);
+        btnCopyFilenames.textContent = 'Copied to Clipboard!';
+        setTimeout(() => { btnCopyFilenames.textContent = 'Copy Backed-Up Filenames'; }, 2000);
       });
     });
   }
@@ -603,18 +627,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const wsUrl = `${protocol}//${window.location.host}`;
     const ws = new WebSocket(wsUrl);
 
-    ws.onopen = () => {
-      setConnected(true);
-    };
-
+    ws.onopen = () => setConnected(true);
     ws.onclose = () => {
       setConnected(false);
       setTimeout(initWebSocket, 3000);
     };
-
-    ws.onerror = () => {
-      setConnected(false);
-    };
+    ws.onerror = () => setConnected(false);
   }
 
   initWebSocket();
