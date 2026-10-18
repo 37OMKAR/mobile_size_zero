@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "inverse-primary": "#006875", "outline-variant": "#3b494c", "surface-container-highest": "#31353e", "on-primary-container": "#00626e", "error-container": "#93000a", "on-primary-fixed": "#001f24", "on-surface": "#dfe2ee", "on-secondary-fixed": "#002113", "secondary-fixed-dim": "#4edea3", "surface-bright": "#353942", "primary-container": "#00e5ff", "primary": "#c3f5ff", "surface": "#0f131c", "background": "#0f131c", "secondary": "#4edea3", "surface-container-high": "#262a33", "on-secondary-container": "#00311f", "on-tertiary-container": "#7e22cc", "on-background": "#dfe2ee", "on-primary": "#00363d", "on-tertiary-fixed": "#2c0051", "primary-fixed-dim": "#00daf3", "tertiary-container": "#e4c4ff", "outline": "#849396", "inverse-surface": "#dfe2ee", "error": "#ffb4ab", "tertiary-fixed-dim": "#ddb7ff", "on-secondary": "#003824", "surface-tint": "#00daf3", "tertiary": "#f7e7ff", "on-error": "#690005", "on-tertiary": "#490080", "secondary-container": "#00a572", "tertiary-fixed": "#f0dbff", "surface-dim": "#0f131c", "on-error-container": "#ffdad6", "on-primary-fixed-variant": "#004f58", "on-tertiary-fixed-variant": "#6900b3", "primary-fixed": "#9cf0ff", "surface-container-low": "#181c24", "surface-container-lowest": "#0a0e16", "on-surface-variant": "#bac9cc", "secondary-fixed": "#6ffbbe", "inverse-on-surface": "#2c3039", "on-secondary-fixed-variant": "#005236", "surface-variant": "#31353e", "surface-container": "#1c2028" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-lg": "1.25rem", "gutter-desktop": "1.5rem", "space-xl": "2rem", "margin": "1rem", "margin-tablet": "1.5rem", "space-xs": "0.25rem", "space-md": "0.75rem", "gutter": "1rem", "space-sm": "0.5rem", "margin-desktop": "2.5rem" }, "fontFamily": { "display-lg-mobile": ["Inter"], "body-md": ["Inter"], "label-mono-sm": ["JetBrains Mono"], "display-lg": ["Inter"], "headline-md": ["Inter"], "headline-lg": ["Inter"], "body-lg": ["Inter"], "label-mono-lg": ["JetBrains Mono"], "label-mono-md": ["JetBrains Mono"] }, "fontSize": { "display-lg-mobile": ["30px", { "lineHeight": "36px", "letterSpacing": "-0.025em", "fontWeight": "600" }], "body-md": ["13px", { "lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400" }], "label-mono-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "500" }], "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.03em", "fontWeight": "600" }], "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.015em", "fontWeight": "500" }], "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600" }], "body-lg": ["15px", { "lineHeight": "22px", "letterSpacing": "-0.01em", "fontWeight": "400" }], "label-mono-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "-0.01em", "fontWeight": "500" }], "label-mono-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "400" }] } } } }</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface text-on-surface antialiased flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/85 backdrop-blur-xl shadow-[0_1px_12px_rgba(0,0,0,0.5)]"><div class="h-20 px-margin flex items-center justify-between"><div class="flex flex-col gap-space-xs"><div class="flex items-center gap-space-sm"><span class="font-headline-md text-headline-md tracking-wider text-on-surface uppercase">AirTransfer</span><span class="px-1.5 py-0.5 rounded bg-surface-container-high font-label-mono-sm text-label-mono-sm text-primary-fixed-dim uppercase tracking-widest">v2.4-PRO</span></div><div class="flex items-center gap-1.5"><span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-secondary shadow-[0_0_8px_rgba(78,222,163,0.8)]"></span></span><span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">Connected • 5GHz LAN (866 Mbps)</span></div></div><div class="flex items-center gap-space-sm"><div class="flex items-center gap-1.5 px-2 py-1 rounded bg-surface-container-low shadow-[inset_0_1px_2px_rgba(0,0,0,0.6)]"><span class="material-symbols-outlined text-secondary text-[16px]">battery_charging_full</span><span class="font-label-mono-sm text-label-mono-sm text-secondary tracking-tight">AWAKE</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col relative w-full pt-20 pb-24 bg-surface min-h-screen"><div class="flex flex-col w-full px-margin space-y-space-md">
+<!-- Storage Pressure Gauge Hero Card -->
+<section class="w-full rounded-xl bg-surface-container-low p-space-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_rgba(0,0,0,0.45)]">
+<!-- Header status tag -->
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse shadow-[0_0_8px_rgba(255,180,171,0.8)]"></span>
+<span class="font-label-mono-sm text-label-mono-sm uppercase tracking-widest text-error">STORAGE PRESSURE // CRITICAL (99.8%)</span>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm text-outline px-1.5 py-0.5 rounded bg-surface-container-highest">FLASH_NVME_0</span>
+</div>
+<!-- Metric display headline -->
+<div class="flex items-baseline justify-between mt-space-xs mb-space-sm">
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline-lg text-headline-lg tracking-tight text-on-surface font-semibold">127.8</span>
+<span class="font-body-md text-body-md text-on-surface-variant">GB of 128.0 GB Used</span>
+</div>
+<div class="flex items-center gap-1 px-2 py-0.5 rounded bg-error-container/40 text-error text-label-mono-sm font-label-mono-sm font-medium">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+<span>200 MB LEFT</span>
+</div>
+</div>
+<!-- Precision Segmented Progress Bar -->
+<div class="w-full h-3 rounded bg-surface-container-lowest p-0.5 flex gap-0.5 shadow-[inset_0_1px_2px_rgba(0,0,0,0.8)]">
+<!-- Segment 1: System & Apps (115.6 GB / 90.3%) -->
+<div class="h-full rounded-l-DEFAULT bg-outline-variant" style="width: 82%;"></div>
+<!-- Segment 2: 4K Videos (9.4 GB / 7.3%) -->
+<div class="h-full bg-tertiary-container shadow-[0_0_6px_rgba(228,196,255,0.4)]" style="width: 11%;"></div>
+<!-- Segment 3: Photos & Bursts (2.8 GB / 2.2%) -->
+<div class="h-full bg-primary-container shadow-[0_0_6px_rgba(0,229,255,0.5)]" style="width: 6.2%;"></div>
+<!-- Remaining Micro-gap (Emerald 200MB / 0.2%) -->
+<div class="h-full rounded-r-DEFAULT bg-secondary animate-pulse" style="width: 0.8%;"></div>
+</div>
+<!-- Telemetry Legend -->
+<div class="grid grid-cols-2 gap-space-xs mt-space-md pt-space-xs">
+<div class="flex items-center gap-2 p-1.5 rounded bg-surface-container/60">
+<span class="w-2 h-2 rounded-xs bg-tertiary-container shrink-0"></span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant truncate">4K High-Res Video</span>
+<span class="font-label-mono-md text-label-mono-md font-medium text-tertiary">9.4 GB <span class="text-outline text-label-mono-sm">(14 files)</span></span>
+</div>
+</div>
+<div class="flex items-center gap-2 p-1.5 rounded bg-surface-container/60">
+<span class="w-2 h-2 rounded-xs bg-primary-container shrink-0"></span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant truncate">Photos &amp; Bursts</span>
+<span class="font-label-mono-md text-label-mono-md font-medium text-primary">2.8 GB <span class="text-outline text-label-mono-sm">(842 items)</span></span>
+</div>
+</div>
+<div class="flex items-center gap-2 p-1.5 rounded bg-surface-container/60">
+<span class="w-2 h-2 rounded-xs bg-outline-variant shrink-0"></span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant truncate">System OS &amp; Apps</span>
+<span class="font-label-mono-md text-label-mono-md font-medium text-on-surface">115.6 GB</span>
+</div>
+</div>
+<div class="flex items-center gap-2 p-1.5 rounded bg-surface-container/60">
+<span class="w-2 h-2 rounded-xs bg-secondary shrink-0 shadow-[0_0_6px_rgba(78,222,163,0.7)]"></span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-mono-sm text-label-mono-sm text-secondary truncate">Available Space</span>
+<span class="font-label-mono-md text-label-mono-md font-medium text-secondary">200 MB CRITICAL</span>
+</div>
+</div>
+</div>
+<!-- Tactile Recommendation Banner -->
+<div class="mt-space-md p-space-sm rounded-lg bg-surface-container-high/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] flex items-center justify-between gap-2">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-primary-container text-[20px] shrink-0">bolt</span>
+<p class="font-body-md text-body-md text-on-surface truncate">
+          Offloading <span class="font-label-mono-md text-primary font-medium">14 heavy videos</span> frees <span class="font-label-mono-md text-secondary font-medium">9.4 GB</span> immediately.
+        </p>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm text-primary-container shrink-0 uppercase tracking-widest font-semibold px-2 py-0.5 rounded bg-surface-container-lowest">TARGETED</span>
+</div>
+</section>
+<!-- Tactile Action Triggers -->
+<section class="flex flex-col gap-space-sm w-full">
+<!-- Primary Hero Mechanical Button -->
+<button class="group relative w-full rounded-xl bg-primary-container p-4 text-on-primary-fixed shadow-[0_4px_12px_rgba(0,229,255,0.2),inset_0_1px_0_rgba(255,255,255,0.7)] active:translate-y-0.5 active:shadow-[0_1px_2px_rgba(0,0,0,0.4)] transition-all flex items-center justify-between overflow-hidden" type="button">
+<div class="absolute -right-4 -bottom-4 w-28 h-28 rounded-full bg-primary/20 blur-xl pointer-events-none"></div>
+<div class="flex items-center gap-3 text-left">
+<div class="w-10 h-10 rounded-lg bg-on-primary-fixed text-primary-container flex items-center justify-center shrink-0 shadow-[0_2px_6px_rgba(0,0,0,0.3)]">
+<span class="material-symbols-outlined text-[24px]">radar</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-md text-headline-md font-semibold text-on-primary-fixed tracking-tight">Scan Phone Media for Relief</span>
+<span class="font-body-md text-body-md text-on-primary-fixed-variant truncate">Auto-detect oversized 4K, dupes &amp; staged files</span>
+</div>
+</div>
+<div class="flex items-center gap-1 pl-2 font-label-mono-md text-label-mono-md font-medium text-on-primary-fixed shrink-0">
+<span class="tracking-widest uppercase">SCAN</span>
+<span class="material-symbols-outlined text-[18px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+</div>
+</button>
+<!-- Split Secondary Tactile Buttons -->
+<div class="grid grid-cols-2 gap-space-sm w-full">
+<button class="w-full text-left p-3 rounded-lg bg-surface-container-low hover:bg-surface-container shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_2px_8px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all flex flex-col justify-between h-24" type="button">
+<div class="flex items-center justify-between w-full">
+<div class="w-7 h-7 rounded bg-surface-container-highest flex items-center justify-center text-primary-fixed-dim">
+<span class="material-symbols-outlined text-[18px]">photo_library</span>
+</div>
+<span class="font-label-mono-sm text-label-mono-sm text-secondary bg-surface-container-lowest px-1.5 py-0.5 rounded">842 ITEMS</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-on-surface">Photos &amp; Media</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">Camera Roll Direct</span>
+</div>
+</button>
+<button class="w-full text-left p-3 rounded-lg bg-surface-container-low hover:bg-surface-container shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_2px_8px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all flex flex-col justify-between h-24" type="button">
+<div class="flex items-center justify-between w-full">
+<div class="w-7 h-7 rounded bg-surface-container-highest flex items-center justify-center text-tertiary-container">
+<span class="material-symbols-outlined text-[18px]">folder_zip</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant font-label-mono-sm text-label-mono-sm bg-surface-container-lowest px-1.5 py-0.5 rounded">
+<span class="material-symbols-outlined text-[12px] text-secondary">lan</span>
+<span>DIRECT</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-on-surface">Files &amp; Recents</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">Unrestricted FS Access</span>
+</div>
+</button>
+</div>
+</section>
+<!-- Live Transfer Engine & Chunk Matrix Queue -->
+<section class="w-full rounded-xl bg-surface-container-low p-space-md shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_6px_20px_rgba(0,0,0,0.4)] flex flex-col gap-space-sm">
+<!-- Queue Module Control Header -->
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-2">
+<span class="font-label-mono-md text-label-mono-md text-on-surface font-medium uppercase tracking-wider">Queue Telemetry</span>
+<span class="font-label-mono-sm text-label-mono-sm px-1.5 py-0.5 rounded bg-primary-container/10 text-primary-container">4 Active / 24 Staged</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="px-2 py-1 rounded bg-surface-container text-on-surface hover:text-primary font-label-mono-sm text-label-mono-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] active:translate-y-0.5" type="button">
+          PAUSE
+        </button>
+<button class="px-2 py-1 rounded bg-surface-container text-on-surface-variant hover:text-on-surface font-label-mono-sm text-label-mono-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] active:translate-y-0.5" type="button">
+          PURGE
+        </button>
+</div>
+</div>
+<!-- Live Telemetry Ribbon -->
+<div class="grid grid-cols-3 gap-space-xs p-2.5 rounded-lg bg-surface-container-lowest shadow-[inset_0_1px_2px_rgba(0,0,0,0.7)]">
+<div class="flex flex-col">
+<span class="font-label-mono-sm text-label-mono-sm text-outline uppercase tracking-wider">IO Bandwidth</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-label-mono-lg text-label-mono-lg font-medium text-primary-container">58.4</span>
+<span class="font-label-mono-sm text-label-mono-sm text-primary-fixed">MB/s</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="font-label-mono-sm text-label-mono-sm text-outline uppercase tracking-wider">Estimated Time</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-label-mono-lg text-label-mono-lg font-medium text-on-surface">01:12</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">rem</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="font-label-mono-sm text-label-mono-sm text-outline uppercase tracking-wider">Payload State</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-label-mono-lg text-label-mono-lg font-medium text-secondary">40.4%</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">3.8/9.4G</span>
+</div>
+</div>
+</div>
+<!-- Active Item Cards -->
+<div class="flex flex-col gap-2 mt-space-xs">
+<!-- Item 1: High Velocity 4K Stream with Discrete 24-Chunk Matrix -->
+<div class="p-3 rounded-lg bg-surface-container/70 flex flex-col gap-2">
+<div class="flex items-start justify-between gap-2">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-primary-container text-[18px] shrink-0 animate-spin" style="animation-duration: 3s;">sync</span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-mono-md text-label-mono-md text-on-surface font-medium truncate">VID_20261018_4K60_Drone.mp4</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">2.4 GB • Chunk 14/24 [62%]</span>
+</div>
+</div>
+<div class="text-right shrink-0">
+<span class="font-label-mono-md text-label-mono-md text-primary-container font-medium">38.2 MB/s</span>
+</div>
+</div>
+<!-- 24-Discrete Chunk Grid Bar -->
+<div class="grid grid-cols-12 gap-1 p-1 rounded bg-surface-container-lowest shadow-[inset_0_1px_2px_rgba(0,0,0,0.8)]">
+<!-- 13 verified chunks -->
+<div class="h-1.5 rounded-xs bg-primary-container"></div>
+<div class="h-1.5 rounded-xs bg-primary-container"></div>
+<div class="h-1.5 rounded-xs bg-primary-container"></div>
+<div class="h-1.5 rounded-xs bg-primary-container"></div>
+<div class="h-1.5 rounded-xs bg-primary-container"></div>
+<div class="h-1.5 rounded-xs bg-primary-container"></div>
+<div class="h-1.5 rounded-xs bg-primary-container"></div>
+<div class="h-1.5 rounded-xs bg-primary-container"></div>
+<div class="h-1.5 rounded-xs bg-primary-container"></div>
+<div class="h-1.5 rounded-xs bg-primary-container"></div>
+<div class="h-1.5 rounded-xs bg-primary-container"></div>
+<div class="h-1.5 rounded-xs bg-primary-container"></div>
+<div class="h-1.5 rounded-xs bg-primary-container"></div>
+<!-- 1 Active In-Flight Chunk -->
+<div class="h-1.5 rounded-xs bg-secondary animate-pulse shadow-[0_0_6px_rgba(78,222,163,0.8)]"></div>
+<!-- 10 Pending Chunks -->
+<div class="h-1.5 rounded-xs bg-surface-container-highest"></div>
+<div class="h-1.5 rounded-xs bg-surface-container-highest"></div>
+<div class="h-1.5 rounded-xs bg-surface-container-highest"></div>
+<div class="h-1.5 rounded-xs bg-surface-container-highest"></div>
+<div class="h-1.5 rounded-xs bg-surface-container-highest"></div>
+<div class="h-1.5 rounded-xs bg-surface-container-highest"></div>
+<div class="h-1.5 rounded-xs bg-surface-container-highest"></div>
+<div class="h-1.5 rounded-xs bg-surface-container-highest"></div>
+<div class="h-1.5 rounded-xs bg-surface-container-highest"></div>
+<div class="h-1.5 rounded-xs bg-surface-container-highest"></div>
+</div>
+</div>
+<!-- Item 2: Skipped / Duplicate Match SHA-256 -->
+<div class="p-2.5 rounded-lg bg-surface-container/40 flex items-center justify-between gap-2">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-secondary text-[18px] shrink-0">verified</span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-mono-md text-label-mono-md text-on-surface-variant truncate">IMG_4892_Portrait.heic</span>
+<div class="flex items-center gap-1.5">
+<span class="font-label-mono-sm text-label-mono-sm text-outline">14.8 MB</span>
+<span class="font-label-mono-sm text-label-mono-sm text-outline">•</span>
+<span class="font-label-mono-sm text-label-mono-sm text-outline-variant font-mono">SHA256:d8a2..f14e</span>
+</div>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-secondary-container/20 text-secondary font-label-mono-sm text-label-mono-sm shrink-0 font-medium">
+          SKIPPED (EXISTS)
+        </span>
+</div>
+<!-- Item 3: Resumed / Re-syncing Session -->
+<div class="p-2.5 rounded-lg bg-surface-container/70 flex items-center justify-between gap-2">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-tertiary-container text-[18px] shrink-0">replay</span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-mono-md text-label-mono-md text-on-surface truncate">Screen_Record_01.mov</span>
+<span class="font-label-mono-sm text-label-mono-sm text-on-surface-variant">840 MB • Offset Check 42%</span>
+</div>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<span class="font-label-mono-md text-label-mono-md text-on-surface font-medium">20.2 MB/s</span>
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container animate-ping"></span>
+</div>
+</div>
+<!-- Item 4: Queued Item Priority Flag -->
+<div class="p-2.5 rounded-lg bg-surface-container/30 flex items-center justify-between gap-2 opacity-80">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-outline text-[18px] shrink-0">hourglass_top</span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-mono-md text-label-mono-md text-on-surface-variant truncate">DJI_Vlog_Export_Final.mov</span>
+<span class="font-label-mono-sm text-label-mono-sm text-outline">3.1 GB • Next in Queue</span>
+</div>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-highest text-outline font-label-mono-sm text-label-mono-sm shrink-0">
+          QUEUED #4
+        </span>
+</div>
+</div>
+</section>
+<!-- Relief Vault: Floating Safe Receipt & Purge Trigger -->
+<section class="w-full rounded-xl bg-surface-container p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_12px_28px_rgba(0,0,0,0.6)] flex flex-col gap-3">
+<div class="flex items-start gap-3">
+<div class="w-9 h-9 rounded-lg bg-secondary-container/30 text-secondary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md font-semibold text-on-surface">Verified Deletion Ready</span>
+<span class="font-label-mono-sm text-label-mono-sm px-1.5 rounded bg-surface-container-lowest text-secondary">SHA-256 OK</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">
+<strong class="text-on-surface">18 files (3.4 GB)</strong> fully mirrored and cryptographically matched on PC vault.
+        </p>
+</div>
+</div>
+<!-- Review Deletion Confirmation Button -->
+<button class="w-full py-2.5 px-3 rounded-lg bg-surface-container-highest hover:bg-surface-bright text-secondary font-label-mono-md text-label-mono-md font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] active:translate-y-0.5 transition-all flex items-center justify-center gap-2" type="button">
+<span class="material-symbols-outlined text-[18px]">delete_sweep</span>
+<span>Review &amp; Safely Empty Phone Space (3.4 GB)</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</section>
+</div>
+<script>
+  // Micro-interaction telemetry simulator
+  (function() {
+    const chunkBar = document.querySelectorAll('.grid-cols-12 > div');
+    if (!chunkBar.length) return;
+    
+    let activeChunk = 13;
+    setInterval(() => {
+      if (activeChunk < 23) {
+        chunkBar[activeChunk].classList.remove('bg-secondary', 'animate-pulse', 'shadow-[0_0_6px_rgba(78,222,163,0.8)]');
+        chunkBar[activeChunk].classList.add('bg-primary-container');
+        activeChunk++;
+        chunkBar[activeChunk].classList.remove('bg-surface-container-highest');
+        chunkBar[activeChunk].classList.add('bg-secondary', 'animate-pulse', 'shadow-[0_0_6px_rgba(78,222,163,0.8)]');
+      }
+    }, 2800);
+  })();
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/90 backdrop-blur-xl shadow-[0_-4px_16px_rgba(0,0,0,0.4)]" data-active-classes="text-primary-container"><div class="flex justify-around items-center h-16 px-space-xs"><a aria-current="page" class="min-w-[44px] min-h-[44px] flex flex-col items-center justify-center gap-0.5 transition-colors text-primary-container" data-path="file-matrix" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span class="font-label-mono-sm text-label-mono-sm uppercase tracking-wide">Matrix</span></a><a class="min-w-[44px] min-h-[44px] flex flex-col items-center justify-center gap-0.5 text-on-surface-variant hover:text-on-surface transition-colors" data-path="lan-stream" href="#"><span class="material-symbols-outlined text-[20px]">sync_alt</span><span class="font-label-mono-sm text-label-mono-sm uppercase tracking-wide">Transfer</span></a><a class="min-w-[44px] min-h-[44px] flex flex-col items-center justify-center gap-0.5 text-on-surface-variant hover:text-on-surface transition-colors" data-path="relief-vault" href="#"><span class="material-symbols-outlined text-[20px]">hard_drive_2</span><span class="font-label-mono-sm text-label-mono-sm uppercase tracking-wide">Relief</span></a><a class="min-w-[44px] min-h-[44px] flex flex-col items-center justify-center gap-0.5 text-on-surface-variant hover:text-on-surface transition-colors" data-path="peer-nodes" href="#"><span class="material-symbols-outlined text-[20px]">hub</span><span class="font-label-mono-sm text-label-mono-sm uppercase tracking-wide">Peers</span></a></div></nav></body></html>
