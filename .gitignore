@@ -6,3 +6,5 @@ test/temp-*
 *.log
 .DS_Store
 Thumbs.db
+.agents/
+
