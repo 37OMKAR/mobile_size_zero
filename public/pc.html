@@ -360,6 +360,140 @@
           <!-- RIGHT COLUMN: REAL-TIME TELEMETRY & STORAGE (8 cols) -->
           <div class="xl:col-span-8 flex flex-col gap-4">
 
+            <!-- USB-C / WIRE DIRECT TRANSFER COMMAND WORKBENCH -->
+            <div id="wireTransferWorkbench" class="bg-surface-container-low rounded-xl p-5 flex flex-col gap-4 shadow-2xl border-2 border-primary-container/40 relative overflow-hidden">
+              <div class="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-primary-container/10 blur-3xl pointer-events-none"></div>
+
+              <!-- Header with Mode & Status -->
+              <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-outline-variant/20">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-lg bg-primary-container text-on-primary-fixed flex items-center justify-center shrink-0 shadow-[0_0_12px_rgba(0,229,255,0.5)]">
+                    <span class="material-symbols-outlined text-[20px]">cable</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm font-bold text-on-surface uppercase tracking-wider font-mono">USB-C / Wire Turbo Transfer</span>
+                      <span class="px-2 py-0.5 rounded bg-secondary/20 text-secondary font-mono text-[10px] font-bold uppercase tracking-widest border border-secondary/30">PRIORITY WIRE LINK</span>
+                    </div>
+                    <span class="text-xs text-on-surface-variant font-mono">Direct hardware PCIe / USB 3.2 bus saturation • Zero crash • Instant duplicate skip</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <span id="wireStatusBadge" class="font-mono text-xs px-2.5 py-1 rounded bg-surface-container text-primary-container border border-outline-variant/30 flex items-center gap-1.5 font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+                    WIRE READY
+                  </span>
+                </div>
+              </div>
+
+              <!-- Source Drive / Folder Selector Row -->
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <div class="md:col-span-8 flex flex-col gap-1.5">
+                  <label class="font-mono text-[11px] text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[14px] text-primary">smartphone</span>
+                    Connected Mobile Source Folder (Phone MTP / Drive / DCIM):
+                  </label>
+                  <div class="flex items-center gap-2 bg-surface-container-lowest rounded-lg p-1.5 border border-outline-variant/30 shadow-inner">
+                    <input id="wireSourceInput" class="w-full bg-transparent font-mono text-xs text-primary px-2 focus:outline-none truncate" placeholder="Click 'Select Mobile Folder' or paste path..." type="text">
+                  </div>
+                </div>
+
+                <div class="md:col-span-4 flex items-center gap-2">
+                  <button id="btnBrowseMobileFolderNative" class="flex-1 py-2.5 px-3 rounded-lg bg-primary-container hover:bg-primary text-on-primary-fixed font-mono text-xs font-bold flex items-center justify-center gap-1.5 shadow-[0_2px_8px_rgba(0,229,255,0.3)] active:translate-y-0.5 transition-all cursor-pointer" type="button">
+                    <span class="material-symbols-outlined text-[18px]">folder_open</span>
+                    <span>Select Mobile Folder</span>
+                  </button>
+                  <button id="btnWebFolderPick" class="py-2.5 px-3 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-mono text-xs font-semibold flex items-center justify-center gap-1 border border-outline-variant/30 active:translate-y-0.5 transition-all cursor-pointer" title="Pick folder via browser file selector" type="button">
+                    <span class="material-symbols-outlined text-[18px]">drive_file_move</span>
+                  </button>
+                  <input type="file" id="wireWebFolderPicker" webkitdirectory directory multiple style="display:none">
+                </div>
+              </div>
+
+              <!-- Live Payload Inspection Summary (Appears once folder is picked) -->
+              <div id="wireScanSummary" class="p-3 rounded-lg bg-surface-container-lowest border border-outline-variant/20 flex flex-col gap-2 font-mono text-xs" style="display: none;">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant/15 pb-1.5">
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-secondary text-[18px]">check_circle</span>
+                    <span id="wireScanHeading" class="font-bold text-on-surface">0 Files Detected</span>
+                    <span id="wireScanTotalSize" class="text-secondary font-semibold">(0 B Total)</span>
+                  </div>
+                  <span class="text-[10px] text-outline">READY FOR ZERO-LOSS COPY</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-[11px] pt-0.5">
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-xs bg-tertiary-container"></span>
+                    <span class="text-on-surface-variant">Videos:</span>
+                    <span id="wireScanVideos" class="text-tertiary font-medium">0 B (0)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-xs bg-primary-container"></span>
+                    <span class="text-on-surface-variant">Photos:</span>
+                    <span id="wireScanPhotos" class="text-primary font-medium">0 B (0)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-xs bg-outline"></span>
+                    <span class="text-on-surface-variant">Other:</span>
+                    <span id="wireScanDocs" class="text-on-surface font-medium">0 B (0)</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Main Wire Action Buttons -->
+              <div class="flex flex-wrap items-center gap-3">
+                <button id="btnStartWireTransfer" class="flex-1 py-3 px-6 rounded-lg bg-secondary hover:bg-secondary-fixed text-on-secondary-fixed font-mono text-sm font-bold flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(78,222,163,0.35)] active:translate-y-0.5 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" type="button" disabled>
+                  <span class="material-symbols-outlined text-[20px]">bolt</span>
+                  <span id="btnStartWireText">START TURBO WIRE TRANSFER</span>
+                </button>
+                <button id="btnPauseWireTransfer" class="py-3 px-4 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-mono text-xs font-semibold border border-outline-variant/30 cursor-pointer" type="button" style="display: none;">
+                  PAUSE
+                </button>
+                <button id="btnCancelWireTransfer" class="py-3 px-4 rounded-lg bg-error-container/30 hover:bg-error-container/60 text-error font-mono text-xs font-semibold border border-error/30 cursor-pointer" type="button" style="display: none;">
+                  CANCEL
+                </button>
+              </div>
+
+              <!-- Live Transfer Progress & Status Banner -->
+              <div id="wireProgressBanner" class="flex flex-col gap-1.5 p-3 rounded-lg bg-surface-container border border-primary-container/30 shadow-inner" style="display: none;">
+                <div class="flex items-center justify-between font-mono text-xs">
+                  <div class="flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[16px] text-primary-container animate-spin">sync</span>
+                    <span id="wireCurrentFileName" class="text-primary font-medium truncate max-w-md">Copying files...</span>
+                  </div>
+                  <span id="wireProgressPct" class="text-secondary font-bold">0%</span>
+                </div>
+                <div class="w-full bg-surface-container-lowest h-2 rounded overflow-hidden p-0.5">
+                  <div id="wireProgressBar" class="h-full bg-gradient-to-r from-primary-container to-secondary rounded-sm transition-all duration-200" style="width: 0%;"></div>
+                </div>
+                <div class="flex items-center justify-between font-mono text-[10px] text-on-surface-variant pt-0.5">
+                  <span id="wireSpeedLabel" class="text-primary-container font-semibold">0.0 MB/s (Hardware Wire Saturation)</span>
+                  <span id="wireItemsProgress">0 of 0 files processed</span>
+                </div>
+              </div>
+
+              <!-- Post-Transfer Relief Vault: Verified File List for Phone Deletion -->
+              <div id="wireReliefCard" class="p-3.5 rounded-lg bg-secondary/10 border border-secondary/30 flex flex-col gap-2.5 font-mono text-xs" style="display: none;">
+                <div class="flex items-start gap-2.5">
+                  <span class="material-symbols-outlined text-secondary text-[22px] shrink-0">verified</span>
+                  <div class="flex flex-col min-w-0">
+                    <span id="wireReliefHeading" class="font-bold text-secondary text-sm">🎉 Transfer 100% Complete & Verified!</span>
+                    <p id="wireReliefText" class="text-on-surface-variant text-[11px] mt-0.5">
+                      All files are cryptographically matched on PC vault. You can now safely delete them from your mobile device to completely free up storage space.
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center justify-end gap-2 pt-1 border-t border-outline-variant/15">
+                  <button id="btnCopyWireFilenames" class="px-3 py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-primary font-mono text-xs font-semibold border border-outline-variant/30 cursor-pointer" type="button">
+                    Copy Backed-up Filenames
+                  </button>
+                  <button id="btnOpenStorageFolderWire" class="px-3 py-1.5 rounded bg-primary-container text-on-primary-fixed font-mono text-xs font-bold cursor-pointer" type="button">
+                    Open PC Target Folder
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <!-- TOP 3 METRIC TILES -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <!-- Tile 1: Total Offloaded -->

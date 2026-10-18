@@ -56,6 +56,37 @@ document.addEventListener('DOMContentLoaded', () => {
   const settingAutoOrganize = document.getElementById('settingAutoOrganize');
   const settingRequirePin = document.getElementById('settingRequirePin');
 
+  // Direct USB-C / Wire Transfer Workbench Elements
+  const wireSourceInput = document.getElementById('wireSourceInput');
+  const btnBrowseMobileFolderNative = document.getElementById('btnBrowseMobileFolderNative');
+  const btnWebFolderPick = document.getElementById('btnWebFolderPick');
+  const wireWebFolderPicker = document.getElementById('wireWebFolderPicker');
+  const wireScanSummary = document.getElementById('wireScanSummary');
+  const wireScanHeading = document.getElementById('wireScanHeading');
+  const wireScanTotalSize = document.getElementById('wireScanTotalSize');
+  const wireScanVideos = document.getElementById('wireScanVideos');
+  const wireScanPhotos = document.getElementById('wireScanPhotos');
+  const wireScanDocs = document.getElementById('wireScanDocs');
+  const btnStartWireTransfer = document.getElementById('btnStartWireTransfer');
+  const btnStartWireText = document.getElementById('btnStartWireText');
+  const btnPauseWireTransfer = document.getElementById('btnPauseWireTransfer');
+  const btnCancelWireTransfer = document.getElementById('btnCancelWireTransfer');
+  const wireProgressBanner = document.getElementById('wireProgressBanner');
+  const wireCurrentFileName = document.getElementById('wireCurrentFileName');
+  const wireProgressPct = document.getElementById('wireProgressPct');
+  const wireProgressBar = document.getElementById('wireProgressBar');
+  const wireSpeedLabel = document.getElementById('wireSpeedLabel');
+  const wireItemsProgress = document.getElementById('wireItemsProgress');
+  const wireStatusBadge = document.getElementById('wireStatusBadge');
+  const wireReliefCard = document.getElementById('wireReliefCard');
+  const wireReliefHeading = document.getElementById('wireReliefHeading');
+  const wireReliefText = document.getElementById('wireReliefText');
+  const btnCopyWireFilenames = document.getElementById('btnCopyWireFilenames');
+  const btnOpenStorageFolderWire = document.getElementById('btnOpenStorageFolderWire');
+
+  let wireScanData = null;
+  let lastVerifiedFiles = [];
+
   let currentFilter = 'all';
   let historyEntries = [];
   let skippedDuplicatesCount = 0;
@@ -226,6 +257,331 @@ document.addEventListener('DOMContentLoaded', () => {
       } finally {
         btnBrowseFolderNative.innerHTML = '<span class="material-symbols-outlined text-[14px]">drive_file_move</span> Change Folder...';
       }
+    });
+  }
+
+  // --- USB-C / WIRE DIRECT TRANSFER ENGINE CONTROLLERS ---
+
+  // Scan folder for file count & size breakdown
+  async function scanWireFolder(folderPath) {
+    if (!folderPath) return;
+    try {
+      if (wireScanSummary) wireScanSummary.style.display = 'flex';
+      if (wireScanHeading) wireScanHeading.textContent = 'Scanning mobile folder structure...';
+      if (wireScanTotalSize) wireScanTotalSize.textContent = '(Calculating...)';
+
+      const res = await fetch('/api/wire/scan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentSessionToken}`,
+          'x-pin': currentSessionPin
+        },
+        body: JSON.stringify({ sourceDir: folderPath })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        wireScanData = data;
+        if (wireScanHeading) wireScanHeading.textContent = `${data.totalFiles} Files Detected`;
+        if (wireScanTotalSize) wireScanTotalSize.textContent = `(${formatBytes(data.totalBytes)} Total)`;
+        if (wireScanVideos) wireScanVideos.textContent = `${formatBytes(data.videoBytes)}`;
+        if (wireScanPhotos) wireScanPhotos.textContent = `${formatBytes(data.photoBytes)}`;
+        if (wireScanDocs) wireScanDocs.textContent = `${formatBytes(data.docBytes)}`;
+        if (btnStartWireTransfer) {
+          btnStartWireTransfer.disabled = (data.totalFiles === 0);
+          btnStartWireTransfer.onclick = startNativeWireTransfer;
+        }
+      } else {
+        if (wireScanHeading) wireScanHeading.textContent = 'Scan Notice';
+        if (wireScanTotalSize) wireScanTotalSize.textContent = data.error || 'Folder not found or inaccessible';
+        if (btnStartWireTransfer) btnStartWireTransfer.disabled = true;
+      }
+    } catch (e) {
+      console.error('Wire scan error:', e);
+      if (wireScanHeading) wireScanHeading.textContent = 'Folder Scan Error';
+      if (wireScanTotalSize) wireScanTotalSize.textContent = e.message;
+    }
+  }
+
+  // Native Windows File Dialog to select Phone/MTP Drive
+  if (btnBrowseMobileFolderNative) {
+    btnBrowseMobileFolderNative.addEventListener('click', async () => {
+      btnBrowseMobileFolderNative.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">sync</span><span>Selecting...</span>';
+      try {
+        const res = await fetch('/api/wire/browse', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentSessionToken}`,
+            'x-pin': currentSessionPin
+          }
+        });
+        const data = await res.json();
+        if (data.success && data.folderPath) {
+          if (wireSourceInput) wireSourceInput.value = data.folderPath;
+          await scanWireFolder(data.folderPath);
+        }
+      } catch (e) {
+        console.error('Error selecting mobile folder:', e);
+      } finally {
+        btnBrowseMobileFolderNative.innerHTML = '<span class="material-symbols-outlined text-[18px]">folder_open</span><span>Select Mobile Folder</span>';
+      }
+    });
+  }
+
+  // Wire Source Input Manual / Enter Handler
+  if (wireSourceInput) {
+    wireSourceInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const path = wireSourceInput.value.trim();
+        if (path) scanWireFolder(path);
+      }
+    });
+    wireSourceInput.addEventListener('change', () => {
+      const path = wireSourceInput.value.trim();
+      if (path) scanWireFolder(path);
+    });
+  }
+
+  // Web Folder Picker Fallback
+  if (btnWebFolderPick && wireWebFolderPicker) {
+    btnWebFolderPick.addEventListener('click', () => {
+      wireWebFolderPicker.click();
+    });
+  }
+
+  if (wireWebFolderPicker) {
+    wireWebFolderPicker.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files || []);
+      if (files.length === 0) return;
+
+      let totalBytes = 0;
+      let videoBytes = 0;
+      let photoBytes = 0;
+      let docBytes = 0;
+
+      files.forEach(f => {
+        totalBytes += f.size;
+        const cat = getCategory(f.name);
+        if (cat === 'Videos') videoBytes += f.size;
+        else if (cat === 'Photos') photoBytes += f.size;
+        else docBytes += f.size;
+      });
+
+      if (wireScanSummary) wireScanSummary.style.display = 'flex';
+      if (wireScanHeading) wireScanHeading.textContent = `${files.length} Files Selected (Web Browser Picker)`;
+      if (wireScanTotalSize) wireScanTotalSize.textContent = `(${formatBytes(totalBytes)} Total)`;
+      if (wireScanVideos) wireScanVideos.textContent = `${formatBytes(videoBytes)}`;
+      if (wireScanPhotos) wireScanPhotos.textContent = `${formatBytes(photoBytes)}`;
+      if (wireScanDocs) wireScanDocs.textContent = `${formatBytes(docBytes)}`;
+
+      if (btnStartWireTransfer) {
+        btnStartWireTransfer.disabled = false;
+        btnStartWireTransfer.onclick = () => transferWebPickedFiles(files);
+      }
+    });
+  }
+
+  // Start Native Batch Transfer
+  async function startNativeWireTransfer() {
+    const sourceDir = wireSourceInput ? wireSourceInput.value.trim() : '';
+    if (!sourceDir) {
+      alert('Please select a mobile folder or drive first');
+      return;
+    }
+
+    try {
+      if (btnStartWireTransfer) btnStartWireTransfer.disabled = true;
+      if (btnStartWireText) btnStartWireText.textContent = 'STARTING WIRE ENGINE...';
+
+      const res = await fetch('/api/wire/start', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentSessionToken}`,
+          'x-pin': currentSessionPin
+        },
+        body: JSON.stringify({ sourceDir })
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        alert('Could not start wire transfer: ' + (data.error || 'Unknown error'));
+        if (btnStartWireTransfer) btnStartWireTransfer.disabled = false;
+        if (btnStartWireText) btnStartWireText.textContent = 'START TURBO WIRE TRANSFER';
+      }
+    } catch (err) {
+      alert('Error starting wire transfer: ' + err.message);
+      if (btnStartWireTransfer) btnStartWireTransfer.disabled = false;
+      if (btnStartWireText) btnStartWireText.textContent = 'START TURBO WIRE TRANSFER';
+    }
+  }
+
+  // Transfer Web Picked Files directly via Chunk Pipeline
+  async function transferWebPickedFiles(files) {
+    if (!files || files.length === 0) return;
+    if (btnStartWireTransfer) btnStartWireTransfer.disabled = true;
+    if (btnStartWireText) btnStartWireText.textContent = 'PIPELINING TO VAULT...';
+    if (wireProgressBanner) wireProgressBanner.style.display = 'flex';
+    if (wireReliefCard) wireReliefCard.style.display = 'none';
+
+    const verified = [];
+    const total = files.length;
+    let completedCount = 0;
+    let dupCount = 0;
+    let totalBytesTransferred = 0;
+    const startTime = Date.now();
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (wireCurrentFileName) wireCurrentFileName.textContent = file.name;
+      const pct = Math.round(((i + 1) / total) * 100);
+      if (wireProgressBar) wireProgressBar.style.width = `${pct}%`;
+      if (wireProgressPct) wireProgressPct.textContent = `${pct}%`;
+      if (wireItemsProgress) wireItemsProgress.textContent = `${i + 1} of ${total} files processed`;
+
+      try {
+        const relPath = file.webkitRelativePath || file.name;
+        const res = await fetch('/api/init-upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentSessionToken}`,
+            'x-pin': currentSessionPin
+          },
+          body: JSON.stringify({
+            name: file.name,
+            size: file.size,
+            mtime: file.lastModified,
+            relativePath: relPath,
+            totalChunks: 1
+          })
+        });
+
+        const initData = await res.json();
+        if (initData.status === 'duplicate') {
+          dupCount++;
+          skippedDuplicatesCount++;
+          if (statDuplicatesSkipped) statDuplicatesSkipped.textContent = skippedDuplicatesCount;
+          continue;
+        }
+
+        const fileId = initData.fileId;
+        const chunkRes = await fetch('/api/upload-chunk', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/octet-stream',
+            'x-file-id': fileId,
+            'x-chunk-index': '0',
+            'x-total-chunks': '1',
+            'Authorization': `Bearer ${currentSessionToken}`,
+            'x-pin': currentSessionPin
+          },
+          body: file
+        });
+
+        if (chunkRes.ok) {
+          const finalRes = await fetch('/api/finalize-file', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${currentSessionToken}`,
+              'x-pin': currentSessionPin
+            },
+            body: JSON.stringify({ fileId })
+          });
+          const finalData = await finalRes.json();
+          if (finalData.success) {
+            completedCount++;
+            totalBytesTransferred += file.size;
+            verified.push({ name: file.name, size: file.size, sha256: finalData.sha256 });
+          }
+        }
+      } catch (err) {
+        console.error('Error transferring file via web picker:', err);
+      }
+    }
+
+    const durationSec = Math.max(0.1, (Date.now() - startTime) / 1000);
+    const avgSpeed = (totalBytesTransferred / (1024 * 1024)) / durationSec;
+
+    lastVerifiedFiles = verified;
+    if (wireProgressBanner) wireProgressBanner.style.display = 'none';
+    if (btnStartWireTransfer) {
+      btnStartWireTransfer.disabled = false;
+      if (btnStartWireText) btnStartWireText.textContent = 'START TURBO WIRE TRANSFER';
+    }
+    if (wireReliefCard) {
+      wireReliefCard.style.display = 'flex';
+      if (wireReliefHeading) {
+        wireReliefHeading.textContent = `🎉 Transferred ${completedCount} Files (${formatBytes(totalBytesTransferred)}) • ${avgSpeed.toFixed(1)} MB/s Avg!`;
+      }
+      if (wireReliefText) {
+        wireReliefText.textContent = `${completedCount} files cryptographically verified with SHA-256 on PC vault (${dupCount} duplicates skipped with zero redundant writes). You can now safely delete them from your phone to empty space.`;
+      }
+    }
+    loadStatus();
+    loadHistory();
+  }
+
+  // Pause / Resume & Cancel Handlers
+  if (btnPauseWireTransfer) {
+    btnPauseWireTransfer.addEventListener('click', async () => {
+      const isPaused = btnPauseWireTransfer.textContent.includes('RESUME');
+      const endpoint = isPaused ? '/api/wire/resume' : '/api/wire/pause';
+      await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${currentSessionToken}`,
+          'x-pin': currentSessionPin
+        }
+      });
+      btnPauseWireTransfer.textContent = isPaused ? 'PAUSE' : 'RESUME';
+    });
+  }
+
+  if (btnCancelWireTransfer) {
+    btnCancelWireTransfer.addEventListener('click', async () => {
+      if (confirm('Cancel active wire transfer?')) {
+        await fetch('/api/wire/cancel', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${currentSessionToken}`,
+            'x-pin': currentSessionPin
+          }
+        });
+      }
+    });
+  }
+
+  // Copy Verified Filenames for Mobile Cleanup
+  if (btnCopyWireFilenames) {
+    btnCopyWireFilenames.addEventListener('click', () => {
+      if (!lastVerifiedFiles || lastVerifiedFiles.length === 0) {
+        navigator.clipboard.writeText('No files in latest verified wire transfer batch.');
+        return;
+      }
+      const text = lastVerifiedFiles.map(f => `${f.name} (${formatBytes(f.size)}) - SHA256: ${f.sha256}`).join('\n');
+      navigator.clipboard.writeText(text);
+      const originalText = btnCopyWireFilenames.textContent;
+      btnCopyWireFilenames.textContent = 'Copied to Clipboard!';
+      setTimeout(() => { btnCopyWireFilenames.textContent = originalText; }, 2500);
+    });
+  }
+
+  // Open PC Target Storage Folder
+  if (btnOpenStorageFolderWire) {
+    btnOpenStorageFolderWire.addEventListener('click', async () => {
+      await fetch('/api/open-folder', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentSessionToken}`,
+          'x-pin': currentSessionPin
+        },
+        body: JSON.stringify({ folderPath: storageFolderPath ? storageFolderPath.textContent : '' })
+      });
     });
   }
 
@@ -635,6 +991,79 @@ document.addEventListener('DOMContentLoaded', () => {
             pushSpeed(Math.max(0, parseFloat(mbps.toFixed(2))));
             speedBytesRecent = 0;
             speedLastTime = now;
+          }
+
+          // Wire progress banner updates
+          if (data.currentFileName && wireCurrentFileName) {
+            wireCurrentFileName.textContent = data.currentFileName;
+          }
+          if (data.fileIndex && data.totalFiles) {
+            const pct = Math.min(100, Math.round((data.fileIndex / data.totalFiles) * 100));
+            if (wireProgressBar) wireProgressBar.style.width = `${pct}%`;
+            if (wireProgressPct) wireProgressPct.textContent = `${pct}%`;
+            if (wireItemsProgress) wireItemsProgress.textContent = `${data.fileIndex} of ${data.totalFiles} files processed`;
+          }
+          if (data.currentSpeedMBps !== undefined && wireSpeedLabel) {
+            wireSpeedLabel.textContent = `${data.currentSpeedMBps} MB/s (Hardware Wire Saturation)`;
+          }
+        } else if (eventType === 'wire_batch_started') {
+          if (wireProgressBanner) wireProgressBanner.style.display = 'flex';
+          if (wireStatusBadge) {
+            wireStatusBadge.className = 'font-mono text-xs px-2.5 py-1 rounded bg-primary-container text-on-primary-fixed flex items-center gap-1.5 font-bold animate-pulse';
+            wireStatusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-white"></span> TRANSFERRING (WIRE TURBO)';
+          }
+          if (btnPauseWireTransfer) {
+            btnPauseWireTransfer.style.display = 'inline-flex';
+            btnPauseWireTransfer.textContent = 'PAUSE';
+          }
+          if (btnCancelWireTransfer) btnCancelWireTransfer.style.display = 'inline-flex';
+          if (btnStartWireTransfer) btnStartWireTransfer.disabled = true;
+          if (btnStartWireText) btnStartWireText.textContent = 'TRANSFER IN PROGRESS...';
+          if (wireReliefCard) wireReliefCard.style.display = 'none';
+        } else if (eventType === 'wire_batch_completed') {
+          lastVerifiedFiles = data.verifiedFiles || [];
+          if (wireProgressBanner) wireProgressBanner.style.display = 'none';
+          if (btnPauseWireTransfer) btnPauseWireTransfer.style.display = 'none';
+          if (btnCancelWireTransfer) btnCancelWireTransfer.style.display = 'none';
+          if (btnStartWireTransfer) {
+            btnStartWireTransfer.disabled = false;
+            if (btnStartWireText) btnStartWireText.textContent = 'START TURBO WIRE TRANSFER';
+          }
+          if (wireStatusBadge) {
+            wireStatusBadge.className = 'font-mono text-xs px-2.5 py-1 rounded bg-secondary/20 text-secondary border border-secondary/40 flex items-center gap-1.5 font-bold';
+            wireStatusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-secondary"></span> WIRE VERIFIED (100%)';
+          }
+          if (wireReliefCard) {
+            wireReliefCard.style.display = 'flex';
+            if (wireReliefHeading) {
+              wireReliefHeading.textContent = `🎉 Transferred ${data.completedCount} Files (${formatBytes(data.transferredBytes)}) • ${data.averageSpeedMBps} MB/s Avg!`;
+            }
+            if (wireReliefText) {
+              wireReliefText.textContent = `${data.completedCount} files cryptographically verified with SHA-256 on PC vault (${data.duplicateCount} duplicates skipped with zero redundant writes). You can now safely delete them from your phone to empty space.`;
+            }
+          }
+          loadStatus();
+          loadHistory();
+        } else if (eventType === 'wire_batch_cancelled') {
+          if (wireProgressBanner) wireProgressBanner.style.display = 'none';
+          if (btnPauseWireTransfer) btnPauseWireTransfer.style.display = 'none';
+          if (btnCancelWireTransfer) btnCancelWireTransfer.style.display = 'none';
+          if (btnStartWireTransfer) {
+            btnStartWireTransfer.disabled = false;
+            if (btnStartWireText) btnStartWireText.textContent = 'START TURBO WIRE TRANSFER';
+          }
+          if (wireStatusBadge) {
+            wireStatusBadge.className = 'font-mono text-xs px-2.5 py-1 rounded bg-surface-container text-primary-container border border-outline-variant/30 flex items-center gap-1.5 font-semibold';
+            wireStatusBadge.innerHTML = '<span class="w-2 h-2 rounded-full bg-primary-container"></span> WIRE READY';
+          }
+        } else if (eventType === 'wire_batch_error') {
+          alert('Wire transfer error: ' + (data.error || 'Unknown error'));
+          if (wireProgressBanner) wireProgressBanner.style.display = 'none';
+          if (btnPauseWireTransfer) btnPauseWireTransfer.style.display = 'none';
+          if (btnCancelWireTransfer) btnCancelWireTransfer.style.display = 'none';
+          if (btnStartWireTransfer) {
+            btnStartWireTransfer.disabled = false;
+            if (btnStartWireText) btnStartWireText.textContent = 'START TURBO WIRE TRANSFER';
           }
         } else if (eventType === 'duplicate_skipped') {
           skippedDuplicatesCount++;

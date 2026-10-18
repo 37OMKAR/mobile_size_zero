@@ -11,6 +11,7 @@ const defaultConfig = require('./config');
 const Deduplicator = require('./deduplicator');
 const ChunkManager = require('./chunkManager');
 const FileOrganizer = require('./fileOrganizer');
+const WireTransferEngine = require('./wireTransferEngine');
 
 async function createAppAndServer(customConfig = {}) {
   const config = { ...defaultConfig, ...customConfig };
@@ -41,6 +42,8 @@ async function createAppAndServer(customConfig = {}) {
     storageDir: config.STORAGE_DIR,
     autoOrganize: config.AUTO_ORGANIZE
   });
+
+  const wireEngine = new WireTransferEngine();
 
   const app = express();
   const server = http.createServer(app);
@@ -543,7 +546,103 @@ async function createAppAndServer(customConfig = {}) {
     res.json({ items: Array.from(outboxItems.values()) });
   });
 
-  return { app, server, config, deduplicator, chunkManager, fileOrganizer, wss };
+  // --- DIRECT HIGH-SPEED USB-C / WIRE TRANSFER ENDPOINTS ---
+
+  // 16. POST /api/wire/browse - Browse mobile drive or folder on PC
+  app.post('/api/wire/browse', requireAuth, async (req, res) => {
+    try {
+      const result = await wireEngine.browseMobileFolder('Select Connected Mobile Drive or Folder (USB-C Wire)');
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // 17. POST /api/wire/scan - Recursively scan mobile directory
+  app.post('/api/wire/scan', requireAuth, async (req, res) => {
+    try {
+      const { sourceDir } = req.body;
+      if (!sourceDir || !fs.existsSync(sourceDir)) {
+        return res.status(400).json({ error: 'Valid source directory is required' });
+      }
+
+      const files = await wireEngine.scanDirectory(sourceDir);
+      const totalBytes = files.reduce((acc, f) => acc + f.size, 0);
+
+      let videoBytes = 0;
+      let photoBytes = 0;
+      let docBytes = 0;
+
+      files.forEach(f => {
+        const cat = fileOrganizer.getCategory(f.name);
+        if (cat === 'Videos') videoBytes += f.size;
+        else if (cat === 'Photos') photoBytes += f.size;
+        else docBytes += f.size;
+      });
+
+      res.json({
+        success: true,
+        sourceDir,
+        totalFiles: files.length,
+        totalBytes,
+        videoBytes,
+        photoBytes,
+        docBytes,
+        files: files.slice(0, 500) // preview up to 500
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 18. POST /api/wire/start - Start high-speed wire transfer batch
+  app.post('/api/wire/start', requireAuth, async (req, res) => {
+    try {
+      const { sourceDir } = req.body;
+      if (!sourceDir || !fs.existsSync(sourceDir)) {
+        return res.status(400).json({ error: 'Valid source directory is required' });
+      }
+
+      // Run async transfer in background and report completion via WebSocket
+      wireEngine.startBatchTransfer({
+        sourceDir,
+        destinationDir: config.STORAGE_DIR,
+        deduplicator,
+        fileOrganizer,
+        broadcast
+      }).then(summary => {
+        console.log(`[WireTransfer] Batch finished: ${summary.completedCount} transferred, ${summary.duplicateCount} duplicates skipped.`);
+      }).catch(err => {
+        console.error('[WireTransfer] Batch failed:', err.message);
+        broadcast('wire_batch_error', { error: err.message });
+      });
+
+      res.json({ success: true, message: 'Wire transfer batch started' });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // 19. POST /api/wire/cancel - Cancel active wire transfer
+  app.post('/api/wire/cancel', requireAuth, (req, res) => {
+    wireEngine.cancelTransfer();
+    broadcast('wire_batch_cancelled', {});
+    res.json({ success: true, message: 'Wire transfer cancelled' });
+  });
+
+  // 20. POST /api/wire/pause - Pause active wire transfer
+  app.post('/api/wire/pause', requireAuth, (req, res) => {
+    wireEngine.pauseTransfer();
+    res.json({ success: true, message: 'Wire transfer paused' });
+  });
+
+  // 21. POST /api/wire/resume - Resume active wire transfer
+  app.post('/api/wire/resume', requireAuth, (req, res) => {
+    wireEngine.resumeTransfer();
+    res.json({ success: true, message: 'Wire transfer resumed' });
+  });
+
+  return { app, server, config, deduplicator, chunkManager, fileOrganizer, wireEngine, wss };
 }
 
 // Direct execution entrypoint
