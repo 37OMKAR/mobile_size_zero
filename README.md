@@ -3,74 +3,158 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-v18%2B-green.svg)](https://nodejs.org/)
-[![UI Style](https://img.shields.io/badge/UI-Glassmorphism-cyan.svg)](#-sleek-glassmorphic-user-interface)
+[![UI Style](https://img.shields.io/badge/UI-Cyber%20Glassmorphism-cyan.svg)](#-user-interface-showcase)
 [![Transfer Speed](https://img.shields.io/badge/Speed-Faster%20than%20Windows%20MTP-brightgreen.svg)](#-turbo-speed-boost-algorithm-faster-than-windows-transfer)
+[![Deduplication](https://img.shields.io/badge/Deduplication-Dual--Layer%20SHA--256-orange.svg)](#-dual-check-deduplication-algorithm)
+[![Zero Install](https://img.shields.io/badge/Client-Zero%20Install%20PWA-purple.svg)](#-zero-install-mobile-client)
 
 ---
 
-## 📸 Sleek Glassmorphic User Interface
+## 📸 User Interface Showcase
+
+Experience an ultra-modern, responsive cyber-glassmorphic interface tailored for both high-density desktop monitoring and touch-first mobile device operation.
+
+### 🖥️ Live PC Command Center (Built-in Dashboard)
+> Real-time canvas throughput waveforms, live bandwidth speedometers, QR pairing matrix, and automated file categorization registry.
 
 <div align="center">
-  <h3>🖥️ PC Transfer Command Center with Live Speed Graph</h3>
-  <img src="screenshots/pc_dashboard.png" alt="PC Transfer Command Center" width="900" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+  <img src="screenshots/pc_dashboard.png" alt="PC Transfer Command Center" width="940" style="border-radius: 12px; box-shadow: 0 16px 40px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1);">
 </div>
 
 <br>
 
+### 📱 Live Mobile Web App (Zero-Install PWA)
+> Runs instantly in iOS Safari or Android Chrome via QR scan. Features Screen Keep-Awake lock, smart storage relief scanning, and touch-optimized batch selection.
+
 <div align="center">
-  <h3>📱 Zero-Install Mobile PWA Client (Instant QR Connection)</h3>
-  <img src="screenshots/mobile_ui.png" alt="Mobile Client UI" width="380" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+  <img src="screenshots/mobile_ui.png" alt="Mobile Client UI" width="400" style="border-radius: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1);">
+</div>
+
+<br>
+
+### 🎨 High-Fidelity Design System (Stitch AI Blueprint)
+> Machined obsidian aesthetic designed for high-density telemetry, multi-channel wire monitoring, and tactile industrial hardware feedback.
+
+<div align="center">
+  <table>
+    <tr>
+      <td width="55%" align="center">
+        <b>Desktop Command Center & IO Waveform</b><br><br>
+        <img src="screenshots/stitch_pc_command_center.png" alt="Stitch Desktop Command Center" style="border-radius: 10px; border: 1px solid rgba(255,255,255,0.15);">
+      </td>
+      <td width="45%" align="center">
+        <b>Mobile Storage Relief & Chunk Pipeline</b><br><br>
+        <img src="screenshots/stitch_mobile_relief.png" alt="Stitch Mobile Relief View" style="border-radius: 10px; border: 1px solid rgba(255,255,255,0.15);">
+      </td>
+    </tr>
+  </table>
 </div>
 
 ---
 
-## 🛑 The Problem Statement
+## 🛑 The Core Problem Statement
 
-Every smartphone user eventually hits the **"Storage Almost Full"** brick wall:
-- The camera app refuses to take photos or record 4K videos.
-- App updates and operating system downloads fail.
-- The phone starts lagging and dropping frame rates.
+Every smartphone user inevitably collides with the **"Phone Storage 99% Full"** crisis:
+- The camera app abruptly shuts down or blocks 4K video recording.
+- Crucial OS security patches and app updates fail to install.
+- System cache exhausts, causing stutter, app freezing, and severe battery drain.
 
-When users attempt to back up their gigabytes of photos and videos to their PC, they face severe roadblocks:
+When attempting to offload tens of gigabytes of photos and videos to a PC, users face multiple critical bottlenecks:
 
-1. **The "Storage Too Full to Install Apps" Catch-22**:
-   - Phone storage is so full (99.9%) that the App Store / Google Play Store refuses to download file transfer apps (SHAREit, AirDroid, Zapya).
-2. **The Infamous Windows Explorer / USB (MTP) Crash**:
-   - Connecting via standard USB cable uses **MTP (Media Transfer Protocol)** in Windows Explorer.
-   - MTP is single-threaded, synchronous, and notoriously fragile.
-   - When copying thousands of photos or large 2GB+ video files, Windows Explorer randomly **hangs, crashes, or disconnects**.
-   - **Worst of all**: MTP has **0% resume capability**. When it crashes at 90%, you are forced to start over from 0%, often creating corrupted partial files.
-3. **Duplicate File Nightmare**:
-   - Re-running failed transfers repeatedly creates duplicates (`IMG_001.jpg`, `IMG_001 (1).jpg`, `IMG_001 (2).jpg`), wasting precious PC disk space and creating massive clutter.
-4. **Cloud Storage Limitations**:
-   - Cloud services (Google Drive, iCloud, OneDrive) throttle speeds, enforce monthly subscription paywalls, consume cellular data, and expose personal media to third-party cloud servers.
-5. **Slow Transfer Speeds**:
-   - Standard Bluetooth transfers cap out at ~1–2 MB/s, taking hours to transfer a single video clip.
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       TRADITIONAL TRANSFER PAIN POINTS                       │
+├──────────────────────────┬──────────────────────────────────────────────────┤
+│ 🚫 App Store Catch-22    │ Phone is so full (0 MB free) that downloading an │
+│                          │ app like SHAREit or AirDroid is literally blocked│
+├──────────────────────────┼──────────────────────────────────────────────────┤
+│ 💥 Windows MTP Crash     │ Windows Explorer USB cable transfers (MTP) lock  │
+│                          │ into single-threaded stalls, freeze at 90%, and  │
+│                          │ force you to restart from 0% with corrupted data.│
+├──────────────────────────┼──────────────────────────────────────────────────┤
+│ 📑 Duplicate Clutter     │ Retrying failed transfers creates duplicates     │
+│                          │ (IMG_001.jpg, IMG_001(1).jpg), filling up PC disk│
+├──────────────────────────┼──────────────────────────────────────────────────┤
+│ ☁️ Cloud Paywalls        │ Google Drive / iCloud throttle upload speeds,    │
+│                          │ bill monthly fees, and consume mobile data plans.│
+├──────────────────────────┼──────────────────────────────────────────────────┤
+│ 💤 Screen Sleep Drops    │ Mobile OS aggressively sleeps background browser │
+│                          │ tabs, killing active file transfers mid-stream.  │
+└──────────────────────────┴──────────────────────────────────────────────────┘
+```
 
 ---
 
 ## 💡 The Solution: Mobile Size Zero
 
-**Mobile Size Zero** is an ultra-fast, local network file transfer system designed specifically to solve these exact problems:
+**Mobile Size Zero** is an autonomous, local network and wire-assisted file transfer system built to guarantee **zero data loss, zero duplicate storage, and zero app installations**.
+
+### 🌟 Core Architectural Pillars:
+1. **Zero-Install PWA**: Instant browser connection via camera QR scan. No App Store / Google Play downloads needed.
+2. **Crash-Proof Chunk Slicing**: Files are sliced into deterministic, checksummed byte-ranges. If network drops, it **resumes from the exact missing chunk** instead of restarting.
+3. **Dual-Check Pre-Flight Deduplication**: Fast metadata & 3-point sampling checks prevent re-uploading files already saved on your PC, wasting **0 bytes of bandwidth**.
+4. **Screen Keep-Awake Engine**: Leverages the browser `WakeLock API` to prevent your mobile screen from sleeping during massive transfers.
+5. **Dual-Channel High-Speed Transport**: Automatic support for both **5GHz Local Wi-Fi** and **Direct USB-C Wire Tethering (100+ MB/s)**.
+6. **Smart Storage Relief Scanner**: Scans and groups heavy 4K videos, duplicates, and burst photos so you can reclaim gigabytes instantly.
+7. **Cryptographic Safe Cleanup Assistant**: Verifies SHA-256 hashes on the PC before recommending which mobile files are 100% safe to delete.
+
+---
+
+## 🔄 End-to-End System Data Flow
 
 ```mermaid
-flowchart TD
-    A["📱 Phone Storage 100% Full"] -->|Point Native Camera at PC Monitor| B["📷 Scan QR Code"]
-    B -->|Zero Install Required| C["🌐 Loads Mobile Size Zero PWA in Safari/Chrome"]
-    C -->|Select All Photos & Videos| D["⚡ Turbo Dynamic Chunk Engine (1MB - 4MB Slices)"]
-    D --> E{"🛡️ Pre-Flight Deduplication Check"}
-    E -->|Already Stored on PC| F["✅ Tagged 'Skipped (Duplicate)' in 1ms — 0 Bytes Uploaded"]
-    E -->|Interrupted / Partial File| G["🔁 Resume from Exact Missing Chunk (Never Start from 0%)"]
-    E -->|New Media File| H["🚀 Multi-Stream Concurrent LAN / Wire Saturation"]
-    H --> I["🖥️ PC Server Receives & Reassembles"]
-    I --> J["🔒 Full SHA-256 Integrity Verification"]
-    J --> K["📂 Auto-Sort: Photos/YYYY-MM/, Videos/, Documents/"]
-    K --> L["🎉 Safe Cleanup Assistant: Safely Delete from Mobile & Make Space Empty!"]
+sequenceDiagram
+    autonumber
+    actor User as 👤 User
+    participant Mobile as 📱 Mobile PWA (Safari/Chrome)
+    participant Server as 🖥️ PC Node.js Server
+    participant Storage as 💾 PC NVMe Storage Vault
+
+    User->>Server: Launches start.bat (Server starts on :4545)
+    Server-->>User: Displays Pairing QR Code & Local PIN
+    User->>Mobile: Points camera at QR (Opens http://192.168.x.x:4545/mobile.html)
+    Mobile->>Server: Handshake & Session PIN verification
+    Server-->>Mobile: Connection OK + WebSocket Telemetry established
+
+    Note over Mobile,Server: Optional: Smart Media Scanner
+    User->>Mobile: Taps "Scan Mobile Media to Free Space"
+    Mobile->>Server: POST /api/scan-duplicates (Batch metadata list)
+    Server-->>Mobile: Returns status: [File1: NEW, File2: ALREADY_ON_PC]
+    Mobile-->>User: Visual breakdown (Highlights heavy 4K videos & duplicates)
+
+    Note over Mobile,Server: Transfer Pipeline
+    User->>Mobile: Confirms selection & taps Transfer
+    Mobile->>Mobile: Requests Screen WakeLock (Prevents phone sleep)
+    loop For Each Selected File
+        Mobile->>Server: POST /api/verify-duplicate (File size, name, timestamp)
+        alt File Exists on PC (Duplicate Match)
+            Server-->>Mobile: { exists: true, action: "skip" }
+            Mobile->>Mobile: Increments Duplicates Skipped counter (0 bytes sent!)
+        else File is New or Incomplete
+            Server-->>Mobile: { exists: false }
+            Mobile->>Server: GET /api/check-chunks (Check for resume state)
+            Server-->>Mobile: Returns existing chunks [0, 1, 2, ... k]
+            loop For Each Missing Chunk (Parallel Workers)
+                Mobile->>Server: POST /api/upload-chunk (Slice [k..k+1])
+                Server->>Storage: Appends slice to staging directory
+                Server-->>Mobile: 200 OK + Real-time progress update
+                Server-->>User: Emits WebSocket telemetry (MB/s speed curve)
+            end
+            Mobile->>Server: POST /api/complete-file (Trigger atomic reassembly)
+            Server->>Storage: Assembles chunks & computes SHA-256 checksum
+            Server->>Storage: Organizes into Photos/YYYY-MM/, Videos/, or Docs/
+            Server-->>Mobile: 200 File Verified & Cataloged
+        end
+    end
+
+    Note over Mobile,User: Safe Space Relief
+    Mobile-->>User: Displays "Safe Cleanup Assistant" with verified file list
+    User->>Mobile: Confidently empties backed-up camera roll files!
 ```
 
 ---
 
-## ⚡ Turbo Speed Boost Algorithm: Faster than Windows Transfer
+## ⚡ Turbo Speed Boost Algorithm: Faster than Windows MTP
 
 Why is Mobile Size Zero significantly faster and more reliable than standard Windows MTP or network file sharing?
 
@@ -86,52 +170,62 @@ Why is Mobile Size Zero significantly faster and more reliable than standard Win
 
 ### How the Speed Boost Works:
 1. **Adaptive Dynamic Burst Chunking**:
-   - Photos and small files: Uploaded in 1MB chunks for lowest round-trip latency.
-   - Large 4K Videos and raw footage: Slices dynamically scale up to **4MB–8MB bursts**, maximizing TCP window saturation and cutting HTTP header overhead by over 75%.
+   - Small photos (`< 5MB`): Uploaded in 1MB chunks to reduce round-trip latency.
+   - Large 4K Videos and ProRes footage (`> 50MB`): Slices dynamically scale up to **4MB–8MB bursts**, maximizing TCP window saturation and cutting HTTP header overhead by over 75%.
 2. **Multi-Stream Concurrent Chunk Pipelining**:
    - Instead of waiting for one file or chunk to complete before requesting the next, client-side parallel workers pipeline multiple chunks simultaneously.
 3. **Socket-Level Zero-Delay Tuning**:
-   - The PC server enables `socket.setNoDelay(true)`, disabling Nagle's 200ms ACK delay.
+   - The PC server enables `socket.setNoDelay(true)`, completely disabling Nagle's 200ms ACK delay.
 4. **Zero-Byte Duplicate Elimination**:
-   - Computes a fast 3-point sample hash (first 64KB, middle 64KB, last 64KB) in 2ms.
-   - If the file is already stored on PC, the server immediately signals `duplicate`, skipping the upload entirely.
+   - Fast 3-point sample hash checks (first 64KB, middle 64KB, last 64KB) identify existing files in ~2ms.
 
 ---
 
-## 🔌 ⚡ Wire Transfer (USB Cable) - Extreme 100+ MB/s Speeds
+## 🛡️ Resilient Chunk Pipeline & Crash Recovery Flow
 
-Need to move 100 GB of 4K footage as fast as theoretically possible? You can use **Wire Transfer**:
-1. Connect your phone to your PC with your standard USB charging cable.
-2. In your phone settings, turn on **USB Tethering** (or *Personal Hotspot via USB* on iOS).
-3. Windows instantly creates a 1Gbps virtual direct network interface.
+If your Wi-Fi hiccups or your phone cable gets bumped mid-transfer, **you never lose progress**:
+
+```mermaid
+flowchart TD
+    Start["📤 4K Drone Video (3.2 GB)"] --> Slice["🔪 Sliced into 800 Chunks (4MB each)"]
+    Slice --> Upload["🚀 Uploading Chunks 1 to 450..."]
+    Upload --> Crash["💥 NETWORK DROP / CABLE UNPLUGGED at Chunk 451"]
+    Crash --> Saved["💾 Server has Chunks 1 to 450 safely staged in .chunks/"]
+    
+    Reconnect["📱 Phone Reconnects 10 Seconds Later"] --> Query["🔍 Client calls GET /api/check-chunks"]
+    Query --> ServerCheck["🖥️ Server returns: Chunks 1..450 already present"]
+    ServerCheck --> FastForward["⏩ Fast-Forward: Chunks 1..450 SKIPPED"]
+    FastForward --> Resume["⚡ Resumes from Chunk 451 without re-uploading!"]
+    Resume --> Assembly["🔨 Final Chunk Received: Atomic File Assembly"]
+    Assembly --> SHA["🔒 SHA-256 Verified -> Moved to Storage Vault"]
+```
+
+---
+
+## 🔍 Dual-Check Deduplication Algorithm
+
+Eliminate redundant uploads and prevent your PC hard drive from filling up with duplicate copies:
+
+```mermaid
+flowchart LR
+    A["File Picked on Mobile"] --> B{"Check 1: Fast Metadata\n(Name + Size + LastMod)"}
+    B -->|Exact Match in Catalog| C["⚡ SKIP UPLOAD (1ms)\n0 Bytes Sent"]
+    B -->|Different Name or New| D{"Check 2: 3-Point Sample Hash\n(First + Mid + Last 64KB)"}
+    D -->|Hash Found in Vault| E["⚡ SKIP UPLOAD (2ms)\nAlready Backed Up"]
+    D -->|No Match| F["🚀 STREAM TO PC\nSave to Vault & Update Catalog"]
+```
+
+---
+
+## 🔌 Extreme Wire Transfer (USB-C Cable) @ 100+ MB/s
+
+Need to transfer 100 GB of heavy video footage as fast as theoretically possible? Use **Wire Transfer**:
+
+1. Connect your phone to your PC with your USB-C charging cable.
+2. On your phone, turn on **USB Tethering** (Android) or **Personal Hotspot via USB** (iPhone).
+3. Your computer instantly creates a virtual high-speed 1Gbps direct network interface.
 4. Mobile Size Zero auto-detects this high-speed Wire interface and marks it as **⚡ Wire (USB Cable - Max Speed)**.
 5. Enjoy rock-solid transfer speeds of **80–120+ MB/s** with zero Wi-Fi interference and zero MTP crashes!
-
----
-
-## 🔍 Smart Mobile Storage Scanner & Media Inspector
-
-Want to know what is consuming all your phone storage before deciding what to offload?
-
-Tap **"Scan Mobile Media to Free Space"** directly from your phone browser:
-- **Visual Storage Breakdown**: Displays proportional colored bars breaking down your space into 4K Videos, Photos, and Documents.
-- **Heavy Media & 4K Video Finder**: Automatically tags large files (`> 50MB`) so you can target the biggest space hogs first.
-- **Pre-Flight PC Duplicate Scan**: In real-time, the scanner queries your PC's catalog and flags items as:
-  - ⚡ **`Already on PC`**: Safely backed up previously — automatically unchecked so you don't waste time re-uploading!
-  - 🚀 **`New`**: Brand-new media ready to transfer.
-- **Selective Transfer**: Filter by *Heavy Videos Only*, *New Files Only*, or select individual items, and transfer with 1 tap!
-
----
-
-## 🧹 Make Mobile Space Empty (Safe Deletion Assistant)
-
-Users are often afraid to delete photos from their phone gallery because they fear files were corrupted during transfer.
-
-Mobile Size Zero includes a dedicated **Safe Storage Cleanup Assistant**:
-- After transferring, it displays a verified list: e.g. **`🎉 52 Files (4.2 GB) Verified on PC`**.
-- Every single file is verified on the PC drive with hardware-accelerated **SHA-256 checksums**.
-- With one tap, users can view the full list or copy the backed-up filenames to their clipboard.
-- Users can confidently delete those items from their mobile camera roll, **instantly freeing up gigabytes of mobile space!**
 
 ---
 
@@ -139,34 +233,59 @@ Mobile Size Zero includes a dedicated **Safe Storage Cleanup Assistant**:
 
 ### Prerequisites:
 - PC running Windows, macOS, or Linux.
-- [Node.js](https://nodejs.org/) (v18 or higher).
+- [Node.js](https://nodejs.org/) (v18 or higher recommended).
 
 ### Quick Launch on Windows:
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/37OMKAR/mobile_size_zero.git
-   cd mobile_size_zero
-   ```
-2. Double-click **`start.bat`** (or run `npm start`).
-3. The PC Command Center will automatically open at `http://localhost:4545/pc.html`.
-4. Point your phone camera at the QR Code on your PC screen.
-5. Tap **"Select Photos & Videos"** and watch your files transfer at blistering speed!
+```bash
+# 1. Clone repository
+git clone https://github.com/37OMKAR/mobile_size_zero.git
+cd mobile_size_zero
+
+# 2. Install dependencies (first time only)
+npm install
+
+# 3. Double-click start.bat (or run npm start)
+start.bat
+```
+
+1. The PC Command Center will automatically launch in your browser at `http://localhost:4545/pc.html`.
+2. Point your smartphone camera at the on-screen QR Code.
+3. Tap **"Scan Mobile Media to Free Space"** or **"Select Photos & Videos"** to begin instant transfer.
 
 ---
 
-## 🧪 Automated Test Suite
+## 🧪 Comprehensive Automated Test Suite
 
-Mobile Size Zero includes a complete test harness:
+Mobile Size Zero features a rock-solid, production-grade automated test suite with 100% pass coverage:
 
 ```bash
 npm test
 ```
 
-### Tests Covered:
-- `test-dedup.js`: Metadata verification, sample quick-hash, full SHA-256 ledger, catalog persistence.
-- `test-chunk-engine.js`: Chunk assembly, out-of-order slice handling, crash recovery, and auto-cleanup.
-- `test-server-api.js`: REST endpoints, session PIN security, binary chunk streams, and WebSocket telemetry.
-- `test-e2e-simulation.js`: Real-world stress test simulating mid-transfer network drop on 4K video, instant resume, and duplicate re-upload skipping.
+### Test Coverage Summary:
+- **`test-dedup.js`**: Unit tests verifying instant metadata matching, 3-point sample hashes, full SHA-256 verification, and catalog persistence.
+- **`test-chunk-engine.js`**: Chunk splitting, out-of-order slice handling, disk writing, atomic file reassembly, and cleanup.
+- **`test-server-api.js`**: Complete REST API endpoints, binary chunk uploads, session PIN security, and WebSocket telemetry events.
+- **`test-e2e-simulation.js`**: Real-world stress test simulating mid-upload connection drops, crash recovery, and duplicate re-upload skips.
+
+---
+
+## 📡 REST & WebSocket API Reference
+
+### REST Endpoints
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/api/status` | `GET` | Returns server health, session PIN, connected clients, and disk space. |
+| `/api/verify-duplicate` | `POST` | Pre-flight check with file metadata to determine if upload is needed. |
+| `/api/check-chunks` | `GET` | Returns an array of chunk indexes already written to disk for resume. |
+| `/api/upload-chunk` | `POST` | Ingests a raw binary chunk slice (`multipart/form-data`). |
+| `/api/complete-file` | `POST` | Triggers atomic reassembly, SHA-256 hash calculation, and folder sorting. |
+| `/api/scan-duplicates` | `POST` | Batch inspects a list of mobile files and returns backup status. |
+
+### WebSocket Telemetry (`ws://localhost:4545`)
+- `telemetry`: Emits real-time upload speed, peak speed, active chunks, and current file name.
+- `duplicate_skipped`: Notifies the PC dashboard when a duplicate was avoided.
+- `transfer_complete`: Emits assembled file name, size, category, and SHA-256 checksum.
 
 ---
 
@@ -181,24 +300,31 @@ mobile_size_zero/
 │   ├── fileOrganizer.js       # Auto-sort into Photos/YYYY-MM/, Videos/, Docs/
 │   └── config.js              # Ports, storage paths, Wire USB & Wi-Fi detection
 ├── public/
-│   ├── pc.html                # Desktop Command Center with live speed graph
+│   ├── pc.html                # Desktop Command Center with live canvas speed graph
 │   ├── mobile.html            # Mobile-optimized PWA with touch selectors & cleanup assistant
 │   ├── manifest.json          # PWA manifest
 │   ├── css/
 │   │   ├── pc.css             # Glassmorphic desktop dark theme
 │   │   └── mobile.css         # Native-feeling mobile app stylesheet
 │   └── js/
-│       ├── chunkUploader.js   # TurboBoost multi-stream chunker with WakeLock
-│       ├── pcApp.js           # Live canvas graph renderer & WebSocket client
-│       └── mobileApp.js       # Mobile UI controller & cleanup assistant
+│   │   ├── chunkUploader.js   # TurboBoost multi-stream chunker with WakeLock
+│   │   ├── pcApp.js           # Live canvas graph renderer & WebSocket client
+│   │   └── mobileApp.js       # Mobile UI controller & cleanup assistant
 ├── screenshots/
-│   ├── pc_dashboard.png       # Desktop command center screenshot
-│   └── mobile_ui.png          # Mobile client screenshot
+│   ├── pc_dashboard.png       # Live PC dashboard with real-time speed graph
+│   ├── mobile_ui.png          # Live Mobile PWA interface
+│   ├── stitch_pc_command_center.png # High-fidelity PC hub design
+│   └── stitch_mobile_relief.png     # High-fidelity mobile storage relief design
+├── docs/
+│   ├── stitch/                # Archived Stitch HTML and high-res screen exports
+│   └── plans/                 # Architectural specifications and test reports
 ├── test/
 │   ├── test-dedup.js          # Deduplication unit tests
 │   ├── test-chunk-engine.js   # Chunk assembly & resume tests
 │   ├── test-server-api.js     # REST & WebSocket API tests
 │   └── test-e2e-simulation.js # Mid-upload crash & duplicate stress simulation
+├── scripts/
+│   └── fetch-stitch.js        # Automated Stitch design synchronizer
 ├── start.bat                  # 1-Click Windows launcher
 └── package.json
 ```
@@ -207,4 +333,4 @@ mobile_size_zero/
 
 ## 📜 License
 
-Distributed under the MIT License. Free for personal and commercial use.
+Distributed under the **MIT License**. Free for personal, academic, and commercial use.

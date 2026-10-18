@@ -7,4 +7,5 @@ test/temp-*
 .DS_Store
 Thumbs.db
 .agents/
+.stitch/
 
