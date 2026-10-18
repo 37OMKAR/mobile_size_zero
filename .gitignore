@@ -1,0 +1,8 @@
+node_modules/
+.chunks/
+transferred_files/
+.transfer-catalog.json
+test/temp-*
+*.log
+.DS_Store
+Thumbs.db

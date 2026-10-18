@@ -1,0 +1,26 @@
+{
+  "name": "airtransfer-secure-lan",
+  "version": "1.0.0",
+  "description": "Ultra-fast, crash-resilient, secure mobile-to-PC file transfer over local Wi-Fi with zero app install",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "node test/test-dedup.js && node test/test-chunk-engine.js && node test/test-server-api.js && node test/test-e2e-simulation.js"
+  },
+  "keywords": [
+    "file-transfer",
+    "mobile-to-pc",
+    "resumable-upload",
+    "deduplication",
+    "pwa",
+    "lan"
+  ],
+  "author": "Antigravity",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "qrcode": "^1.5.4",
+    "ws": "^8.18.0"
+  }
+}

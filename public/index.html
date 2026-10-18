@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AirTransfer - Redirecting</title>
+  <script>
+    (function() {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const query = window.location.search || '';
+      if (isMobile) {
+        window.location.replace('/mobile.html' + query);
+      } else {
+        window.location.replace('/pc.html' + query);
+      }
+    })();
+  </script>
+</head>
+<body style="background: #090d16; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh;">
+  <p>Loading AirTransfer...</p>
+</body>
+</html>
