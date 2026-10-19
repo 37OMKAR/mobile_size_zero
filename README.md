@@ -52,6 +52,63 @@ Experience an ultra-modern, responsive cyber-glassmorphic interface tailored for
 
 ---
 
+## 🚀 Quick Start & Installation Guide (Use on Any PC)
+
+Follow these simple steps to install and run **Mobile Size Zero** on any PC:
+
+### 1️⃣ Prerequisites
+- **Node.js (v18 or higher)**: [Download Node.js](https://nodejs.org/) (LTS recommended).
+- **Git** (optional if downloading as ZIP): [Download Git](https://git-scm.com/).
+- Supported OS: **Windows 10/11** (recommended for native MTP USB phone auto-detection), macOS, or Linux.
+
+### 2️⃣ Clone or Download the Repository
+
+On any PC, open Terminal, Command Prompt, or PowerShell:
+```bash
+git clone https://github.com/37OMKAR/mobile_size_zero.git
+cd mobile_size_zero
+```
+*(Or click **Code** -> **Download ZIP** on GitHub and extract the folder).*
+
+### 3️⃣ Start the Application
+
+#### Option A: Windows 1-Click Launcher (Recommended)
+Double-click:
+```bat
+start.bat
+```
+> `start.bat` checks for Node.js, automatically runs `npm install` on first launch, starts the server, and opens `http://localhost:4545/pc.html` in your browser.
+
+#### Option B: Terminal / Command Line
+```bash
+# 1. Install dependencies (first time only)
+npm install
+
+# 2. Start the server
+npm start
+```
+Then visit: **`http://localhost:4545/pc.html`** in your browser.
+
+---
+
+### 📲 How to Connect & Transfer Files
+
+#### ⚡ Method 1: USB Cable (Instant Wire Turbo Transfer — Recommended for 1,000s of Photos)
+1. Connect your smartphone to the PC with your USB-C cable.
+2. On your phone screen, tap the USB notification and choose **File Transfer / Android Auto (MTP)**.
+3. On the PC Command Center (`http://localhost:4545/pc.html`), locate the **⚡ USB-C Turbo Wire Engine** card.
+4. Click **"🔍 Auto-Detect Phone"** (or click **"📁 Pick Phone Folder"** to browse directly to your phone's `DCIM/Camera` or SD card).
+5. Review the detected media files and click **"⚡ Start Turbo Wire Transfer"**.
+6. All files stream into your PC's `transferred_files/` directory organized by category and date with 100% duplicate elimination.
+
+#### 📶 Method 2: Wireless Wi-Fi / Hotspot (Zero Mobile App Install)
+1. Ensure your PC and phone are on the same Wi-Fi network (or connect your PC to your phone's personal hotspot).
+2. On the PC Command Center, locate the **📶 Wireless Pairing** QR matrix.
+3. Scan the QR code using your phone's default camera (or open the shown IP, e.g. `http://192.168.x.x:4545/mobile.html`).
+4. Select files and transfer wirelessly with pause/resume support and screen keep-awake.
+
+---
+
 ## 🛑 The Core Problem Statement
 
 Every smartphone user inevitably collides with the **"Phone Storage 99% Full"** crisis:

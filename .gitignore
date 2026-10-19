@@ -11,3 +11,5 @@ Thumbs.db
 .mtp_*
 temp_*
 *.tmp
+check_counts.js
+scratch/
